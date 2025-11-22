@@ -1,22 +1,13 @@
 from fastapi import Query, APIRouter, Body
+from sqlalchemy import insert, select, func
 
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker, engine
+from src.models.hotels import HotelsOrm
 from src.schemas.hotels import Hotel, HotelPATCH
 
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-
-
-# Список отелей, используемый для хранения данных
-hotels = [
-    {"id": 1, "title": "Сочи", "name": "sochi"},
-    {"id": 2, "title": "Дубай", "name": "dubai"},
-    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
-    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
-    {"id": 5, "title": "Москва", "name": "moscow"},
-    {"id": 6, "title": "Казань", "name": "kazan"},
-    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
-]
 
 
 # GET-запрос для получения списка отелей
@@ -24,36 +15,35 @@ hotels = [
     "",
     summary="Получение отеля",
     description="<h1>Тут мы получаем выбранный отель или все отели: "
-                "можно указать id, title, name, page и per_page, либо ничего для всех отлей</h1>",
+                "можно указать id, title, page и per_page, либо ничего для всех отлей</h1>",
 )
-def get_hotels(
+async def get_hotels(
         pagination: PaginationDep,
-        id: int | None = Query(None, description="ID отеля"),
         title: str | None = Query(None, description="Название отеля"),
-        name: str | None = Query(None, description="Наименование отеля"),
+        location: str | None = Query(None, description="Адресс отеля"),
 ):
-    """
-        Получаем список отелей, фильтруя по параметрам:
-        - `id`: ID отеля
-        - `title`: Название отеля
-        - `name`: Наименование отеля
+    per_page = pagination.per_page or 5
+    async with (async_session_maker() as session):
+        query = select(HotelsOrm)
+        if location:
+            query = query.filter(func.lower(HotelsOrm.location).contains(location.strip().lower()))
+        if title:
+            query = query.filter(func.lower(HotelsOrm.title).contains(title.strip().lower()))
+        query = (
+            query
+            .limit(per_page)
+            .offset(per_page * (pagination.page - 1))
+        )
+        print(query.compile(compile_kwargs={"literal_binds": True}))
+        result = await session.execute(query)
 
-        Если никакие параметры не указаны, возвращаем полный список отелей.
-        """
-    # Фильтруем отели согласно переданным параметрам
-    hotels_ = []
-    for hotel in hotels:
-        if id and hotel["id"] != id:
-            continue
-        if title and hotel["title"] != title:
-            continue
-        if name and hotel["name"] != name:
-            continue
-        hotels_.append(hotel)
+        hotels = result.scalars().all()
+        #print(type(hotels), hotels)
+        return hotels
 
-    if pagination.page and pagination.per_page:
-        return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
-    return hotels_
+    #if pagination.page and pagination.per_page:
+        #return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
+
 
 
 # POST-запрос для добавления нового отеля
@@ -62,29 +52,23 @@ def get_hotels(
     summary="Добавление нового отеля",
     description="<h1>Тут мы добавляем отель: нужно отправить name и title</h1>",
 )
-def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     "1": {"summary": "Сочи", "value": {
         "title": "Отель Сочи 5 звёзд у моря",
-        "name": "sochi_u_morya",
+        "location": "ул.Морская д.10",
     }}, "2": {"summary": "Дубай", "value": {
         "title": "Отель Дубай у фонтана",
-        "name": "dubai_fountain",
+        "location": "ул.Шейха д.1",
     }},
 })
 ):
-    """
-        Добавляет новый отель в базу данных:
-        - `title`: название отеля
-        - `name`: наименование отеля
 
-        Возвращает статус операции и сообщение об успешном создании.
-        """
-    global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": hotel_data.title,
-        "name": hotel_data.name
-    })
+    async with async_session_maker() as session:
+        add_hotel_stnt = insert(HotelsOrm).values(**hotel_data.model_dump())
+        #print(add_hotel_stnt.compile(engine, compile_kwargs={"literal_binds": True}))
+        await session.execute(add_hotel_stnt)
+        await session.commit()
+
     return {"Status": "Ok", "Message": "Отель добавлен"}
 
 
