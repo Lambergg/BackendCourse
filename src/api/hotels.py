@@ -4,6 +4,7 @@ from sqlalchemy import insert, select, func
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
 
@@ -23,27 +24,13 @@ async def get_hotels(
         location: str | None = Query(None, description="Адресс отеля"),
 ):
     per_page = pagination.per_page or 5
-    async with (async_session_maker() as session):
-        query = select(HotelsOrm)
-        if location:
-            query = query.filter(func.lower(HotelsOrm.location).contains(location.strip().lower()))
-        if title:
-            query = query.filter(func.lower(HotelsOrm.title).contains(title.strip().lower()))
-        query = (
-            query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1))
+    async with async_session_maker() as session:
+        return await HotelsRepository(session).get_all(
+            location=location,
+            title=title,
+            limit=per_page,
+            offset=per_page * (pagination.page - 1)
         )
-        print(query.compile(compile_kwargs={"literal_binds": True}))
-        result = await session.execute(query)
-
-        hotels = result.scalars().all()
-        #print(type(hotels), hotels)
-        return hotels
-
-    #if pagination.page and pagination.per_page:
-        #return hotels_[pagination.per_page * (pagination.page-1):][:pagination.per_page]
-
 
 
 # POST-запрос для добавления нового отеля
@@ -64,12 +51,10 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
 ):
 
     async with async_session_maker() as session:
-        add_hotel_stnt = insert(HotelsOrm).values(**hotel_data.model_dump())
-        #print(add_hotel_stnt.compile(engine, compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stnt)
+        hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
-    return {"Status": "Ok", "Message": "Отель добавлен"}
+    return {"Status": "Ok", "data": hotel}
 
 
 # PUT-запрос для полного обновления отеля
