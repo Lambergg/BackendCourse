@@ -1,7 +1,6 @@
 from fastapi import Query, APIRouter, Body
-
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
+from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
@@ -40,7 +39,6 @@ async def get_hotels(
 async def get_hotel(hotel_id: int):
     async with async_session_maker() as session:
         return await HotelsRepository(session).get_one_or_none(id=hotel_id)
-
 
 
 # POST-запрос для добавления нового отеля
