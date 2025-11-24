@@ -17,6 +17,7 @@ class BaseRepository:
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
+        print(query.compile(compile_kwargs={"literal_binds": True}))
 
         return result.scalars().one_or_none()
 
@@ -25,8 +26,12 @@ class BaseRepository:
         result = await self.session.execute(add_data_stmt)
         return result.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by) -> None:
-        update_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump())
+    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
+        update_stmt = (
+            update(self.model)
+            .filter_by(**filter_by)
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+        )
         await self.session.execute(update_stmt)
 
     async def delete(self, **filter_by) -> None:
