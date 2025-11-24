@@ -63,7 +63,7 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     summary="Полное обновление выбранного отеля",
     description="<h1>Тут мы обновляем выбранный отель: нужно отправить name и title</h1>",
 )
-def edit_hotel(hotel_id: int, hotel_data: Hotel):
+async def edit_hotel(hotel_id: int, hotel_data: Hotel):
     """
         Полностью обновляет информацию об отеле:
         - `hotel_id`: id отеля, который нужно обновить
@@ -72,10 +72,9 @@ def edit_hotel(hotel_id: int, hotel_data: Hotel):
 
         Возвращает статус операции и сообщение об успешном изменении.
         """
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    hotel["title"] = hotel_data.title
-    hotel["name"] = hotel_data.name
+    async with async_session_maker() as session:
+        await HotelsRepository(session).edit(hotel_data, id=hotel_id)
+        await session.commit()
     return {"Status": "Ok", "Message": "Отель изменён"}
 
 
@@ -112,13 +111,14 @@ def partially_edit_hotel(
     summary="Удаление выбранного отеля",
     description="<h1>Тут мы удалем выбранный отель: нужно отправить id отеля</h1>",
 )
-def delete_hotel(hotel_id: int):
+async def delete_hotel(hotel_id: int):
     """
         Удаляет отель по переданному id:
         - `hotel_id`: id отеля, который нужно удалить
 
         Возвращает статус операции и сообщение об успешном удалении.
     """
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    async with async_session_maker() as session:
+        await HotelsRepository(session).delete(id=hotel_id)
+        await session.commit()
     return {"Status": "Ok", "Message": "Отель Удалён"}
