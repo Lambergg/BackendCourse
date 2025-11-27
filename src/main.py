@@ -9,15 +9,44 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.api.hotels import router as router_hotels
 
 
+"""
+Main entry point for the FastAPI application.
+
+This module initializes the FastAPI application, includes the necessary routers,
+and runs the Uvicorn server for development purposes.
+"""
+
 # Создаем экземпляр приложения FastAPI
 app = FastAPI()
+"""FastAPI application instance.
+
+This is the main entry point for the API, which handles routing and request processing.
+"""
 
 
 app.include_router(router_hotels)
+"""Include the hotels router.
+
+Adds all routes defined in the hotels API router to the main application.
+These routes are accessible under the prefix defined in the router (e.g., /hotels).
+"""
 
 
 # Запуск сервера Uvicorn для запуска API
 if __name__ == "__main__":
+    """
+    Run the application using Uvicorn server.
+
+    This block executes only when the script is run directly (not imported).
+    It starts the Uvicorn server with the following configuration:
+    - Host: 127.0.0.1 (localhost)
+    - Port: 8080
+    - Reload: True (auto-reload on code changes, useful for development)
+
+    The app is referenced as "main:app" where:
+    - "main" is the module name (main.py)
+    - "app" is the FastAPI instance name
+    """
     uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)
 
 
