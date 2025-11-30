@@ -1,5 +1,6 @@
 from src.repositories.base import BaseRepository
 from src.models.rooms import RoomsOrm
+from src.schemas.rooms import Room
 
 
 class RoomsRepository(BaseRepository):
@@ -19,3 +20,4 @@ class RoomsRepository(BaseRepository):
             Specifies that this repository works with the RoomsOrm model.
     """
     model = RoomsOrm
+    schema = Room
