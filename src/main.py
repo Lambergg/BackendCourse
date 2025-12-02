@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.api.hotels import router as router_hotels
 from src.api.auth import router as router_auth
 from src.api.rooms import router as router_rooms
+from src.api.bookings import router as router_bookings
 
 
 """
@@ -30,6 +31,7 @@ This is the main entry point for the API, which handles routing and request proc
 app.include_router(router_auth)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
+app.include_router(router_bookings)
 """Include the hotels router.
 
 Adds all routes defined in the hotels API router to the main application.
