@@ -63,7 +63,7 @@ class RoomsRepository(BaseRepository):
 
         rooms_left_result = (
             select(
-                RoomsOrm.id.label("rooms.id"),
+                RoomsOrm.id.label("rooms_id"),
                 (RoomsOrm.quantity - func.coalesce(rooms_count.c.rooms_reserved, 0)).label("rooms_left"),
             )
             .select_from(RoomsOrm)
@@ -71,10 +71,22 @@ class RoomsRepository(BaseRepository):
             .cte(name="rooms_left_result")
         )
 
-        query = (
-            select(rooms_left_result)
-            .select_from(rooms_left_result)
-            .filter(rooms_left_result.c.rooms_left > 0)
+        rooms_ids_from_hotel = (
+            select(RoomsOrm.id)
+            .select_from(RoomsOrm)
+            .filter_by(hotel_id=hotel_id)
+            .subquery(name="rooms_ids_from_hotel")
         )
 
-        print(query.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        rooms_ids_to_get = (
+            select(rooms_left_result.c.rooms_id)
+            .select_from(rooms_left_result)
+            .filter(
+                rooms_left_result.c.rooms_left > 0,
+                rooms_left_result.c.rooms_id.in_(rooms_ids_from_hotel)
+            )
+        )
+
+        #print(rooms_ids_to_get.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+
+        return await self.get_filtered(RoomsOrm.id.in_(rooms_ids_to_get))
