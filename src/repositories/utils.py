@@ -7,10 +7,9 @@ from src.models.rooms import RoomsOrm
 
 
 def rooms_ids_for_booking(
-
-        hotel_id: int,
         date_from: date,
-        date_to: date
+        date_to: date,
+        hotel_id: int | None = None,
 ):
     rooms_count = (
         select(BookingsOrm.room_id, func.count("*").label("rooms_reserved"))
@@ -33,10 +32,15 @@ def rooms_ids_for_booking(
         .cte(name="rooms_left_result")
     )
 
-    rooms_ids_from_hotel = (
+    rooms_ids_for_hotel = (
         select(RoomsOrm.id)
         .select_from(RoomsOrm)
-        .filter_by(hotel_id=hotel_id)
+    )
+    if hotel_id is not None:
+        rooms_ids_for_hotel = rooms_ids_for_hotel.filter_by(hotel_id=hotel_id)
+
+    rooms_ids_for_hotel = (
+        rooms_ids_for_hotel
         .subquery(name="rooms_ids_from_hotel")
     )
 
@@ -45,7 +49,7 @@ def rooms_ids_for_booking(
         .select_from(rooms_left_result)
         .filter(
             rooms_left_result.c.rooms_left > 0,
-            rooms_left_result.c.rooms_id.in_(rooms_ids_from_hotel)
+            rooms_left_result.c.rooms_id.in_(rooms_ids_for_hotel)
         )
     )
 
