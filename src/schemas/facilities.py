@@ -11,5 +11,10 @@ class Facilities(FacilitiesAdd):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FacilitiesPatch(BaseModel):
-    title: str | None = None
+class RoomsFacilitiesAdd(BaseModel):
+    room_id: int
+    facility_id: int
+
+
+class RoomsFacilities(RoomsFacilitiesAdd):
+    id: int
