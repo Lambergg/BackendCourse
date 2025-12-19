@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 import uvicorn
+from contextlib import asynccontextmanager
 
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-
+from src.init import redis_manager
 from src.api.hotels import router as router_hotels
 from src.api.auth import router as router_auth
 from src.api.rooms import router as router_rooms
@@ -14,31 +15,22 @@ from src.api.bookings import router as router_bookings
 from src.api.facilities import router as router_facilities
 
 
-"""
-Main entry point for the FastAPI application.
-
-This module initializes the FastAPI application, includes the necessary routers,
-and runs the Uvicorn server for development purposes.
-"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    #При старте приложения
+    await redis_manager.connect()
+    yield
+    #При выключении/перезагрузке приложения
+    await redis_manager.close()
 
 # Создаем экземпляр приложения FastAPI
-app = FastAPI()
-"""FastAPI application instance.
-
-This is the main entry point for the API, which handles routing and request processing.
-"""
-
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(router_auth)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
 app.include_router(router_bookings)
 app.include_router(router_facilities)
-"""Include the hotels router.
-
-Adds all routes defined in the hotels API router to the main application.
-These routes are accessible under the prefix defined in the router (e.g., /hotels).
-"""
 
 
 # Запуск сервера Uvicorn для запуска API
@@ -73,5 +65,5 @@ async def custom_swagger_ui_html():
         swagger_js_url="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js",
         swagger_css_url="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
     )
-
+app = FastAPI(docs_url=None)
 """
