@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
+from src.api.images import router as router_images
 from src.init import redis_manager
 from src.api.hotels import router as router_hotels
 from src.api.auth import router as router_auth
@@ -35,6 +36,7 @@ app.include_router(router_hotels)
 app.include_router(router_rooms)
 app.include_router(router_bookings)
 app.include_router(router_facilities)
+app.include_router(router_images)
 
 
 # Запуск сервера Uvicorn для запуска API
