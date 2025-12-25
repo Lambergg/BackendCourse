@@ -13,3 +13,7 @@ def upload_image(file: UploadFile):
         shutil.copyfileobj(file.file, new_file)
 
         resize_image.delay(image_path)
+        #from fastapi import APIRouter, UploadFile, BackgroundTasks
+        #def upload_image(file: UploadFile, background_tasks: BackgroundTasks)
+        #background_tasks.add_task(resize_image, image_path)
+        #return {"message": "Изображение загружено"}
