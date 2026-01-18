@@ -13,12 +13,7 @@ class RoomsRepository(BaseRepository):
     model = RoomsOrm
     mapper = RoomDataMapper
 
-    async def get_filtered_by_time(
-            self,
-            hotel_id: int,
-            date_from: date,
-            date_to: date
-    ):
+    async def get_filtered_by_time(self, hotel_id: int, date_from: date, date_to: date):
         """
         -- CTE общее табличное выражение
             with rooms_count as (
@@ -37,7 +32,7 @@ class RoomsRepository(BaseRepository):
         """
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
 
-        #print(rooms_ids_to_get.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        # print(rooms_ids_to_get.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
         query = (
             select(self.model)
@@ -46,13 +41,13 @@ class RoomsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
 
-        return [RoomDataWithRelsMapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        return [
+            RoomDataWithRelsMapper.map_to_domain_entity(model) for model in result.scalars().all()
+        ]
 
     async def get_one_or_none_with_rels(self, **filter_by):
         query = (
-            select(self.model)
-            .options(selectinload(self.model.facilities))
-            .filter_by(**filter_by)
+            select(self.model).options(selectinload(self.model.facilities)).filter_by(**filter_by)
         )
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()

@@ -25,6 +25,7 @@ class HotelsOrm(Base):
         location (Mapped[str]): The physical address or location of the hotel.
                                 Stored as a variable-length string.
     """
+
     __tablename__ = "hotels"
 
     id: Mapped[int] = mapped_column(primary_key=True)

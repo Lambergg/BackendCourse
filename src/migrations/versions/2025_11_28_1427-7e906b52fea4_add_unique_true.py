@@ -5,12 +5,12 @@ Revises: aa85c5636258
 Create Date: 2025-11-28 14:27:44.913068
 
 """
-#ruff: noqa
+
+# ruff: noqa
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
 
 
 revision: str = "7e906b52fea4"

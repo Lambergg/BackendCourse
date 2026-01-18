@@ -27,6 +27,7 @@ class UsersOrm(Base):
             of 200 characters. The plain-text password
             is never stored.
     """
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
