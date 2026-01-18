@@ -5,7 +5,7 @@ async def get_data(i: int, endpoint: str):
     print(f'Начал выполнение: {i}')
     url = f'http://127.0.0.1:8080/{endpoint}/{i}'
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
+        async with session.get(url):
             print(f'Закончил выполнение: {i}')
 
 
