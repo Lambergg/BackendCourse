@@ -5,7 +5,7 @@ from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep
 from src.schemas.facilities import RoomsFacilitiesAdd
-from src.schemas.rooms import RoomAddRequest, RoomAdd, RoomPatchRequest, RoomPatch
+from src.schemas.rooms import RoomAddRequest, RoomAdd, RoomPatchRequest, RoomPatch, Room
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
@@ -40,7 +40,7 @@ async def create_room(
     room_data: RoomAddRequest = Body(),
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-    room = await db.rooms.add(_room_data)
+    room: Room = await db.rooms.add(_room_data)
 
     rooms_facilities_data = [
         RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids

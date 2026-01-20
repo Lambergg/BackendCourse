@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
     # При старте приложения
     await redis_manager.connect()
 
-    FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
+    FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
     yield
     # При выключении/перезагрузке приложения
     await redis_manager.close()

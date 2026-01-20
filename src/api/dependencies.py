@@ -8,7 +8,7 @@ from src.utils.db_manager import DBManager
 
 
 class PaginationParams(BaseModel):
-    page: Annotated[int | None, Query(1, ge=1, description="Текущая страница")]
+    page: Annotated[int, Query(1, ge=1, description="Текущая страница")]
     per_page: Annotated[int | None, Query(None, ge=1, ls=30, description="Элементов на странице")]
 
 

@@ -19,6 +19,6 @@ async def create_facilities(db: DBDep, facilities_data: FacilitiesAdd = Body()):
     facilities = await db.facilities.add(facilities_data)
     await db.commit()
 
-    test_task.delay()
+    test_task.delay()  # type: ignore
 
     return {"Status": "Ok", "data": facilities}
