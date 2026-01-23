@@ -5,7 +5,7 @@ from httpx import AsyncClient
 @pytest.mark.parametrize("email, password, status_code", [
         ("test1@test1.com", "test1234", 200),
         ("test2@test2.com", "test1234", 200),
-        ("test2@test2.com", "test1234", 400),
+        ("test2@test2.com", "test1234", 409),
         ("abcde", "test1234", 422),
     ])
 async def test_auth_flow(email: str, password: str, status_code: int, ac: AsyncClient):
