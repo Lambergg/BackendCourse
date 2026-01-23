@@ -1,3 +1,4 @@
+import logging
 from typing import Sequence, Any
 
 from asyncpg.exceptions import UniqueViolationError
@@ -54,9 +55,15 @@ class BaseRepository:
             model = result.scalars().one()
             return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
+            logging.error(
+                f'Не удалось добавить данные в БД, входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}'
+            )
             if isinstance(ex.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistsException from ex
             else:
+                logging.error(
+                    f'Незнакомая ошибка. Входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}'
+                )
                 raise ex
 
 

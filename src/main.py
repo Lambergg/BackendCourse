@@ -1,14 +1,16 @@
+import logging
+import sys
+from pathlib import Path
+
 from fastapi import FastAPI
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
-import sys
-from pathlib import Path
-
-
 sys.path.append(str(Path(__file__).parent.parent))
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 from src.api.images import router as router_images
@@ -24,8 +26,8 @@ from src.api.facilities import router as router_facilities
 async def lifespan(app: FastAPI):
     # При старте приложения
     await redis_manager.connect()
-
     FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
+    logging.info("FasstApiCache initialized")
     yield
     # При выключении/перезагрузке приложения
     await redis_manager.close()
