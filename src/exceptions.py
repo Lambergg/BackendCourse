@@ -51,3 +51,23 @@ class HotelNotFoundHTTPException(NabronirovalHTTPException):
 class RoomNotFoundHTTPException(NabronirovalHTTPException):
     status_code = 404
     detail = "Номер не найден"
+
+
+class UserAllReadyExistsHTTPException(NabronirovalHTTPException):
+    status_code = 409
+    detail = "Пользователь с таким email уже зарегистрирован"
+
+
+class UserNotRegisterHTTPException(NabronirovalHTTPException):
+    status_code = 401
+    detail = "Пользователь с таким email уже не зарегистрирован"
+
+
+class WrongPasswordHTTPException(NabronirovalHTTPException):
+    status_code = 401
+    detail = "Неверный пароль"
+
+
+class AllRoomsAreBookedHTTPException(NabronirovalHTTPException):
+    status_code = 409
+    detail = "Не осталось свободных комнат"

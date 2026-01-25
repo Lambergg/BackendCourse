@@ -6,6 +6,7 @@ from src.exceptions import ObjectNotFoundException, AllRoomsAreBookedException
 from src.schemas.bookings import BookingAddRequest, BookingAdd
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
+from src.services.bookings import BookingService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 
@@ -15,13 +16,13 @@ router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 async def get_bookings(
     db: DBDep,
 ):
-    return await db.bookings.get_all()
+    return await BookingService(db).get_bookings()
 
 
 @router.get("/me")
 @cache(expire=10)
 async def get_my_bookings(user_id: UserIdDep, db: DBDep):
-    return await db.bookings.get_filtered(user_id=user_id)
+    return await BookingService(db).get_my_bookings(user_id)
 
 
 @router.post("")
@@ -30,17 +31,5 @@ async def add_booking(
     db: DBDep,
     booking_data: BookingAddRequest,
 ):
-    try:
-        room: Room = await db.rooms.get_one(id=booking_data.room_id)
-    except ObjectNotFoundException:
-        raise HTTPException(status_code=400, detail="Номер не найден")
-    hotel: Hotel = await db.hotels.get_one(id=room.hotel_id)
-    room_price: int = room.price
-    _booking_data = BookingAdd(user_id=user_id, price=room_price, **booking_data.model_dump())
-    try:
-        booking = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
-    except AllRoomsAreBookedException as ex:
-        raise HTTPException(status_code=409, detail=ex.detail)
-    await db.commit()
-
+    booking = await BookingService(db).add_booking(user_id, booking_data)
     return {"Status": "Ok", "data": booking}
