@@ -60,7 +60,7 @@ class UserAllReadyExistsHTTPException(NabronirovalHTTPException):
 
 class UserNotRegisterHTTPException(NabronirovalHTTPException):
     status_code = 401
-    detail = "Пользователь с таким email уже не зарегистрирован"
+    detail = "Пользователь с таким email не зарегистрирован"
 
 
 class WrongPasswordHTTPException(NabronirovalHTTPException):
