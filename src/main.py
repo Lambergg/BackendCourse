@@ -11,7 +11,7 @@ from fastapi_cache.backends.redis import RedisBackend
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 from src.api.images import router as router_images
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     - "main" is the module name (main.py)
     - "app" is the FastAPI instance name
     """
-    uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
 
 
 """
