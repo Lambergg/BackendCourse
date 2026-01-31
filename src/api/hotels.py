@@ -91,8 +91,18 @@ async def create_hotel(
 )
 async def edit_hotel(
     hotel_id: int,
-    hotel_data: HotelAdd,
     db: DBDep,
+    hotel_data: HotelAdd = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Новые данные",
+                "value": {
+                    "title": "Мега отель у моря",
+                    "location": "ул.Мега Гига.10",
+                },
+            },
+        }
+    ),
 ):
     await HotelService(db).edit_hotel(hotel_id, hotel_data)
     return {"Status": "Ok", "Message": "Отель изменён"}
@@ -106,8 +116,18 @@ async def edit_hotel(
 )
 async def partially_edit_hotel(
     hotel_id: int,
-    hotel_data: HotelPatch,
     db: DBDep,
+    hotel_data: HotelPatch = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Новые данные",
+                "value": {
+                    "title": "Тут мы обновляем данные об отеле",
+                    "location": "А это мы не обновляем. Или можем обновить и то и то",
+                },
+            },
+        }
+    ),
 ):
     await HotelService(db).edit_hotel_partially(hotel_id, hotel_data, exclude_unset=True)
     return {"Status": "Ok", "Message": "Отель изменён"}

@@ -45,7 +45,7 @@ def rooms_ids_for_booking(
         .select_from(rooms_left_result)
         .filter(
             rooms_left_result.c.rooms_left > 0,
-            rooms_left_result.c.rooms_id.in_(rooms_ids_for_hotel_subq),  # type: ignore
+            rooms_left_result.c.rooms_id.in_(rooms_ids_for_hotel_subq.select()),  # type: ignore
         )
     )
 
