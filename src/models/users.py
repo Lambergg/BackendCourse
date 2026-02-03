@@ -6,26 +6,20 @@ from src.database import Base
 
 class UsersOrm(Base):
     """
-    ORM model representing the 'users' table in the database.
+    ORM-модель для таблицы 'users'.
 
-    This class defines the structure of the 'users' table using SQLAlchemy's
-    declarative mapping system. Each instance of this class corresponds to a
-    row in the 'users' table, and each class attribute represents a column.
+    Представляет пользователей системы. Каждый пользователь имеет уникальный email и хешированный пароль.
 
-    Attributes:
-        __tablename__ (str): The name of the database table associated
-            with this model.
+    Атрибуты:
+    - id: Уникальный идентификатор пользователя (первичный ключ).
+    - email: Email пользователя (до 200 символов, уникальный).
+    - hashed_password: Хешированный пароль (до 200 символов).
 
-        id (Mapped[int]): The primary key of the user. A unique identifier
-            for each user in the system.
-
-        email (Mapped[str]): The email address of the user. Stored as a
-            string with a maximum length of 200 characters.
-
-        hashed_password (Mapped[str]): The hashed version of the user's password.
-            Stored as a string with a maximum length
-            of 200 characters. The plain-text password
-            is never stored.
+    Пример:
+        user = UsersOrm(
+            email="koto-pes@mail.ru",
+            hashed_password="scrypt:mcf..."
+        )
     """
 
     __tablename__ = "users"

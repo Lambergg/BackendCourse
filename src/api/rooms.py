@@ -24,6 +24,22 @@ async def get_rooms(
     date_from: date = Query(example="2025-12-29"),
     date_to: date = Query(example="2025-12-31"),
 ):
+    """
+    Возвращает список номеров указанного отеля с учётом доступности в заданный период.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - db (DBDep): Зависимость для работы с базой данных.
+    - date_from (date): Дата заезда — используется для проверки бронирований.
+    - date_to (date): Дата выезда.
+
+    Логика:
+    - Вызывает `RoomService.get_filtered_by_time()` → CTE-запрос с подсчётом свободных номеров.
+    - Результат кэшируется на 10 секунд.
+
+    Возвращает:
+    - Список номеров с информацией о цене, количестве, удобствах и доступных местах.
+    """
     return await RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
 
 
@@ -38,6 +54,21 @@ async def get_room(
     room_id: int,
     db: DBDep,
 ):
+    """
+    Возвращает данные одного номера по ID отеля и номера.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - room_id (int): ID номера.
+    - db (DBDep): Зависимость для работы с БД.
+
+    Логика:
+    - Получает номер через `RoomService.get_room()`.
+    - Если не найден — выбрасывается исключение.
+
+    Возвращает:
+    - Pydantic-модель номера.
+    """
     try:
         return await RoomService(db).get_room(hotel_id, room_id)
     except RoomNotFoundException:
@@ -67,6 +98,22 @@ async def create_room(
         }
     ),
 ):
+    """
+    Добавляет новый номер в указанный отель.
+
+    Параметры:
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_id (int): ID отеля.
+    - room_data (RoomAddRequest): Данные нового номера — название, описание, цена, количество, удобства.
+
+    Логика:
+    - Передаёт данные в `RoomService.create_room()`.
+    - Проверяет существование отеля.
+    - Создаёт запись в таблице `rooms`.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "data": {...}} — созданный номер.
+    """
     try:
         room = await RoomService(db).create_room(hotel_id, room_data)
     except HotelNotFoundException:
@@ -98,6 +145,22 @@ async def edit_room(
         }
     ),
 ):
+    """
+    Полностью заменяет данные номера.
+
+    Параметры:
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_id (int): ID отеля.
+    - room_id (int): ID номера.
+    - room_data (RoomAddRequest): Новые данные номера.
+
+    Логика:
+    - Обновляет все поля номера.
+    - Если отель или номер не найдены — выбрасывается исключение.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "message": "Номер успешно изменен"}
+    """
     await RoomService(db).edit_room(hotel_id, room_id, room_data)
 
     return {"Status": "Ok", "message": "Номер успешно изменен"}
@@ -127,6 +190,22 @@ async def partially_edit_room(
         }
         )
 ):
+    """
+    Частично обновляет данные номера.
+
+    Параметры:
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_id (int): ID отеля.
+    - room_id (int): ID номера.
+    - room_data (RoomPatchRequest): Поля для обновления (опциональные).
+
+    Логика:
+    - Обновляет только переданные поля.
+    - Использует `exclude_unset=True` → пропускает непереданные поля.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "Message": "Номер успешно изменён"}
+    """
     await RoomService(db).partially_edit_room(hotel_id, room_id, room_data)
     return {"Status": "Ok", "Message": "Номер успешно изменён"}
 
@@ -141,5 +220,20 @@ async def delete_room(
     room_id: int,
     db: DBDep,
 ):
+    """
+    Удаляет номер по ID отеля и номера.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - room_id (int): ID номера.
+    - db (DBDep): Зависимость для работы с БД.
+
+    Логика:
+    - Вызывает `RoomService.delete_room()`.
+    - Удаляет номер из БД.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "Message": "Номер Удалён"}
+    """
     await RoomService(db).delete_room(hotel_id, room_id)
     return {"Status": "Ok", "Message": "Номер Удалён"}

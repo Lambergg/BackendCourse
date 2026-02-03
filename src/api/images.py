@@ -11,6 +11,22 @@ router = APIRouter(prefix="/images", tags=["Изображения отелей"
     description="<h1>Загрузите ваше изображение</h1>"
 )
 def upload_image(file: UploadFile):
+    """
+    Эндпоинт для загрузки изображения.
+
+    Параметры:
+    - file (UploadFile): Загружаемый файл изображения.
+
+    Логика:
+    - Передаёт файл в сервис `ImagesService.upload_image()`.
+    - Файл сохраняется в директорию `src/static/images/`.
+
+    Возвращает:
+    - JSON: {"filename": "имя_файла", "status": "uploaded"}
+
+    Примечание:
+    - Для асинхронной обработки (например, изменение размера) рекомендуется использовать `BackgroundTasks`.
+    """
     ImagesService().upload_image(file)
 
     # from fastapi import APIRouter, UploadFile, BackgroundTasks

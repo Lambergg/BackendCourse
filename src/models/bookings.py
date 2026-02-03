@@ -18,5 +18,24 @@ class BookingsOrm(Base):
     price: Mapped[int]
 
     @hybrid_property
-    def total_coast(self) -> int:
+    def total_cost(self) -> int:
+        """
+        Вычисляемое свойство: общая стоимость бронирования.
+
+        Рассчитывается как:
+        цена за ночь × количество ночей
+
+        Пример:
+        date_from = 2026-01-01
+        date_to = 2026-01-05
+        price = 1000
+        total_coast = 1000 × 4 = 4000
+
+        Использование:
+        - В SQLAlchemy запросах (благодаря @hybrid_property).
+        - В Python-коде как обычное свойство.
+
+        Возвращает:
+        - Общую стоимость бронирования (int).
+        """
         return self.price * (self.date_to - self.date_from).days

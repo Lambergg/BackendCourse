@@ -26,6 +26,24 @@ async def get_hotels(
     date_from: date = Query(example="2025-12-29"),
     date_to: date = Query(example="2025-12-31"),
 ):
+    """
+    Возвращает список отелей с фильтрацией по названию, местоположению и доступности номеров.
+
+    Параметры:
+    - pagination (PaginationDep): Параметры пагинации (page, per_page).
+    - db (DBDep): Зависимость для работы с базой данных.
+    - title (str | None): Фильтр по названию отеля.
+    - location (str | None): Фильтр по адресу.
+    - date_from (date): Дата заезда — используется для проверки доступных номеров.
+    - date_to (date): Дата выезда.
+
+    Логика:
+    - Вызывает `HotelService.get_filtered_by_time()` → CTE-запрос с подсчётом свободных номеров.
+    - Результат кэшируется на 10 секунд.
+
+    Возвращает:
+    - Список отелей с количеством доступных номеров в указанный период.
+    """
     return await HotelService(db).get_filtered_by_time(
         pagination,
         title,
@@ -46,6 +64,20 @@ async def get_hotel(
     hotel_id: int,
     db: DBDep,
 ):
+    """
+    Возвращает данные одного отеля по его ID.
+
+    Параметры:
+    - hotel_id (int): Уникальный идентификатор отеля.
+    - db (DBDep): Зависимость для работы с БД.
+
+    Логика:
+    - Получает отель через `HotelService.get_hotel()`.
+    - Если отель не найден — выбрасывается исключение.
+
+    Возвращает:
+    - Pydantic-модель отеля.
+    """
     try:
         return await HotelService(db).get_hotel(hotel_id)
     except ObjectNotFoundException:
@@ -79,6 +111,20 @@ async def create_hotel(
         }
     ),
 ):
+    """
+    Добавляет новый отель в систему.
+
+    Параметры:
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_data (HotelAdd): Данные нового отеля — название и адрес.
+
+    Логика:
+    - Передаёт данные в `HotelService.add_hotel()`.
+    - Создаёт запись в таблице `hotels`.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "data": {...}} — созданный отель.
+    """
     hotel = await HotelService(db).add_hotel(hotel_data)
     return {"Status": "Ok", "data": hotel}
 
@@ -104,6 +150,21 @@ async def edit_hotel(
         }
     ),
 ):
+    """
+    Полностью заменяет данные существующего отеля.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_data (HotelAdd): Новые данные отеля (обязательные поля).
+
+    Логика:
+    - Обновляет все поля отеля.
+    - Если отель не найден — выбрасывается исключение.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "Message": "Отель изменён"}
+    """
     await HotelService(db).edit_hotel(hotel_id, hotel_data)
     return {"Status": "Ok", "Message": "Отель изменён"}
 
@@ -129,6 +190,21 @@ async def partially_edit_hotel(
         }
     ),
 ):
+    """
+    Частично обновляет данные отеля.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - db (DBDep): Зависимость для работы с БД.
+    - hotel_data (HotelPatch): Поля для обновления (опциональные).
+
+    Логика:
+    - Обновляет только переданные поля.
+    - Использует `exclude_unset=True` → пропускает непереданные поля.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "Message": "Отель изменён"}
+    """
     await HotelService(db).edit_hotel_partially(hotel_id, hotel_data, exclude_unset=True)
     return {"Status": "Ok", "Message": "Отель изменён"}
 
@@ -143,5 +219,19 @@ async def delete_hotel(
     hotel_id: int,
     db: DBDep,
 ):
+    """
+    Удаляет отель по ID.
+
+    Параметры:
+    - hotel_id (int): ID отеля.
+    - db (DBDep): Зависимость для работы с БД.
+
+    Логика:
+    - Вызывает `HotelService.delete_hotel()`.
+    - Удаляет отель из БД.
+
+    Возвращает:
+    - JSON: {"Status": "Ok", "Message": "Отель Удалён"}
+    """
     await HotelService(db).delete_hotel(hotel_id)
     return {"Status": "Ok", "Message": "Отель Удалён"}
