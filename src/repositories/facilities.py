@@ -8,21 +8,65 @@ from src.schemas.facilities import RoomsFacilities
 
 
 class FacilitiesRepository(BaseRepository):
+    """
+    Репозиторий для работы с удобствами (facilities).
+
+    Предоставляет стандартные CRUD-операции через BaseRepository.
+
+    Атрибуты:
+    - model: ORM-модель `FacilitiesOrm`.
+    - mapper: Маппер `FacilityDataMapper` для преобразования в Pydantic-схему.
+    """
     model = FacilitiesOrm
     mapper = FacilityDataMapper
 
 
 class RoomsFacilitiesRepository(BaseRepository):
+    """
+    Репозиторий для работы с ассоциативной таблицей `rooms_facilities`.
+
+    Управляет связями "многие ко многим" между номерами и удобствами.
+
+    Атрибуты:
+    - model: ORM-модель `RoomsFacilitiesOrm`.
+    - schema: Pydantic-схема `RoomsFacilities` (используется напрямую без маппера).
+    """
     model: RoomsFacilitiesOrm = RoomsFacilitiesOrm
     schema = RoomsFacilities
 
     async def set_room_facilities(self, room_id: int, facilities_ids: list[int]) -> None:
+        """
+        Настраивает удобства для указанного номера.
+
+        Сравнивает текущие удобства номера с новыми и:
+        - Удаляет связи для исключённых удобств.
+        - Добавляет связи для новых удобств.
+
+        Параметры:
+        - room_id (int): ID номера.
+        - facilities_ids (list[int]): Список ID удобств, которые должны быть у номера.
+
+        Логика:
+        1. Получает текущие `facility_id` из таблицы `rooms_facilities` для `room_id`.
+        2. Находит разницу:
+            - `ids_to_delete`: есть сейчас, но нет в новых.
+            - `ids_to_insert`: нет сейчас, но есть в новых.
+        3. Выполняет `DELETE` и `INSERT` при необходимости.
+
+        Пример:
+            await repo.set_room_facilities(1, [1, 2, 5])
+            # Удалит связи с удобствами, кроме 1,2,5
+            # Добавит связи с 1,2,5 (если их не было)
+        """
+        # Получаем текущие ID удобств номера
         get_current_facilities_ids_query = select(self.model.facility_id).filter_by(room_id=room_id)
         res = await self.session.execute(get_current_facilities_ids_query)
         current_facilities_ids: Sequence[int] = res.scalars().all()
+        # Определяем, что удалять и что добавлять
         ids_to_delete: list[int] = list(set(current_facilities_ids) - set(facilities_ids))
         ids_to_insert: list[int] = list(set(facilities_ids) - set(current_facilities_ids))
 
+        # Удаляем лишние связи
         if ids_to_delete:
             delete_m2m_facilities_stmt = delete(self.model).filter(  # type: ignore
                 self.model.room_id == room_id,  # type: ignore
@@ -30,6 +74,7 @@ class RoomsFacilitiesRepository(BaseRepository):
             )
             await self.session.execute(delete_m2m_facilities_stmt)
 
+        # Добавляем новые связи
         if ids_to_insert:
             insert_m2m_facilities_stmt = insert(self.model).values(  # type: ignore
                 [{"room_id": room_id, "facility_id": f_id} for f_id in ids_to_insert]

@@ -9,12 +9,37 @@ from src.services.hotels import HotelService
 
 
 class RoomService(BaseService):
+    """
+    Сервис для управления номерами отелей.
+
+    Предоставляет методы:
+    - Получение номеров с фильтрацией по доступности.
+    - Создание, обновление, удаление и частичное редактирование номеров.
+    - Проверка существования отеля и номера перед операциями.
+
+    Наследуется от `BaseService`, имеет доступ к `self.db` (DBManager).
+    """
     async def get_filtered_by_time(
             self,
             hotel_id: int,
             date_from: date,
             date_to: date,
     ):
+        """
+        Возвращает список доступных номеров в указанном отеле и периоде.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - date_from (date): Дата заезда.
+        - date_to (date): Дата выезда.
+
+        Логика:
+        1. Проверяет, что date_from < date_to.
+        2. Передаёт данные в репозиторий `rooms.get_filtered_by_time()`.
+
+        Возвращает:
+        - Список Pydantic-схем `RoomWithRels` (с удобствами).
+        """
         check_date_to_after_date_from(date_from, date_to)
         return await self.db.rooms.get_filtered_by_time(
             hotel_id=hotel_id, date_from=date_from, date_to=date_to
@@ -25,6 +50,19 @@ class RoomService(BaseService):
             hotel_id: int,
             room_id: int,
     ):
+        """
+        Возвращает один номер с удобствами.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - room_id (int): ID номера.
+
+        Логика:
+        - Вызывает `get_one_with_rels()` → загружает номер и его удобства.
+
+        Возвращает:
+        - Pydantic-схему `RoomWithRels`.
+        """
         return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
 
     async def create_room(
@@ -32,6 +70,25 @@ class RoomService(BaseService):
             hotel_id: int,
             room_data: RoomAddRequest,
     ):
+        """
+        Создаёт новый номер в указанном отеле.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - room_data (RoomAddRequest): Данные номера — название, цена, количество, удобства.
+
+        Логика:
+        1. Проверяет существование отеля.
+        2. Создаёт номер через `rooms.add()`.
+        3. Привязывает удобства через `rooms_facilities.add_bulk()`.
+        4. Фиксирует транзакцию.
+
+        Исключения:
+        - HotelNotFoundException: если отель не существует.
+
+        Возвращает:
+        - Созданный номер как Pydantic-схему.
+        """
         try:
             await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException as ex:
@@ -52,6 +109,23 @@ class RoomService(BaseService):
             room_id: int,
             room_data: RoomAddRequest,
     ):
+        """
+        Полностью обновляет номер.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - room_id (int): ID номера.
+        - room_data (RoomAddRequest): Новые данные номера.
+
+        Логика:
+        1. Проверяет существование отеля и номера.
+        2. Обновляет основные поля.
+        3. Синхронизирует удобства через `set_room_facilities()`.
+        4. Фиксирует изменения.
+
+        Возвращает:
+        - None.
+        """
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
@@ -65,6 +139,23 @@ class RoomService(BaseService):
             room_id: int,
             room_data: RoomPatchRequest
     ):
+        """
+        Частично обновляет номер.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - room_id (int): ID номера.
+        - room_data (RoomPatchRequest): Поля для обновления.
+
+        Логика:
+        1. Проверяет существование отеля и номера.
+        2. Обновляет только переданные поля (`exclude_unset=True`).
+        3. Если переданы `facilities_ids` — синхронизирует связи.
+        4. Фиксирует изменения.
+
+        Возвращает:
+        - None.
+        """
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
         _room_data_dict = room_data.model_dump(exclude_unset=True)
@@ -81,12 +172,43 @@ class RoomService(BaseService):
             hotel_id: int,
             room_id: int,
     ):
+        """
+        Удаляет номер.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - room_id (int): ID номера.
+
+        Логика:
+        1. Проверяет существование отеля и номера.
+        2. Удаляет запись из `rooms`.
+        3. Автоматически удаляются связи (ON DELETE CASCADE).
+
+        Возвращает:
+        - None.
+        """
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
         await self.db.rooms.delete(id=room_id, hotel_id=hotel_id)
         await self.db.commit()
 
     async def get_room_with_check(self, room_id: int) -> Room:
+        """
+        Возвращает номер с проверкой на существование.
+
+        Параметры:
+        - room_id (int): ID номера.
+
+        Логика:
+        - Пытается получить номер.
+        - Если не найден — выбрасывает `RoomNotFoundException`.
+
+        Исключения:
+        - RoomNotFoundException: если номер не существует.
+
+        Возвращает:
+        - Pydantic-схему `Room`.
+        """
         try:
             return await self.db.rooms.get_one(id=room_id)
         except ObjectNotFoundException:

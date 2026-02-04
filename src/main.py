@@ -25,6 +25,15 @@ from src.api.facilities import router as router_facilities
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Асинхронный контекстный менеджер для управления жизненным циклом приложения.
+
+    Выполняется:
+    - При старте: подключается к Redis и инициализирует кэш.
+    - При остановке: закрывает соединение с Redis.
+
+    Используется через параметр `lifespan` в FastAPI.
+    """
     # При старте приложения
     await redis_manager.connect()
     FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
@@ -37,6 +46,7 @@ async def lifespan(app: FastAPI):
 # Создаем экземпляр приложения FastAPI
 app = FastAPI(lifespan=lifespan)
 
+# Подключение роутеров
 app.include_router(router_auth)
 app.include_router(router_hotels)
 app.include_router(router_rooms)
@@ -48,17 +58,12 @@ app.include_router(router_images)
 # Запуск сервера Uvicorn для запуска API
 if __name__ == "__main__":
     """
-    Run the application using Uvicorn server.
+    Точка входа для запуска приложения через Uvicorn.
 
-    This block executes only when the script is run directly (not imported).
-    It starts the Uvicorn server with the following configuration:
-    - Host: 127.0.0.1 (localhost)
-    - Port: 8080
-    - Reload: True (auto-reload on code changes, useful for development)
-
-    The app is referenced as "main:app" where:
-    - "main" is the module name (main.py)
-    - "app" is the FastAPI instance name
+    Конфигурация:
+    - host: 0.0.0.0 — доступ с любого интерфейса.
+    - port: 8080 — порт сервера.
+    - reload: True — автоматическая перезагрузка при изменении кода (для разработки).
     """
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
 

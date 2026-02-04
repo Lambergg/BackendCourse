@@ -11,12 +11,39 @@ from src.utils.db_manager import DBManager
 
 @celery_instance.task
 def test_task():
+    """
+    Пример фоновой задачи, имитирующей долгую операцию.
+
+    Выполняет:
+    - Паузу на 5 секунд.
+    - Логирование завершения.
+
+    Используется для демонстрации работы Celery.
+    """
     sleep(5)
     logging.info("Я закончил")
 
 
 @celery_instance.task
 def resize_image(image_path: str):
+    """
+    Асинхронно изменяет размер изображения на несколько стандартных значений.
+
+    Параметры:
+    - image_path (str): Полный путь к исходному изображению.
+
+    Логика:
+    1. Открывает изображение с помощью PIL.
+    2. Создаёт версии с шириной: 1000px, 500px, 200px.
+    3. Сохраняет в `src/static/images` с суффиксом `_размерpx`.
+
+    Особенности:
+    - Сохраняет пропорции изображения.
+    - Использует `LANCZOS` для высококачественного ресемплинга.
+
+    Пример выходных файлов:
+        original.jpg → original_1000px.jpg, original_500px.jpg, original_200px.jpg
+    """
     logging.debug(f'Вызываеться resize_image с аргументом {image_path=}')
     sizes = [1000, 500, 200]
     output_folder = "src/static/images"
@@ -48,6 +75,11 @@ def resize_image(image_path: str):
 
 
 async def get_bookings_with_today_checkin_helper():
+    """
+    Асинхронная функция для получения бронирований с заездом сегодня.
+
+    Используется как вспомогательная для Celery-задачи.
+    """
     logging.info("Я НАЧАЛ!")
     async with DBManager(session_factory=async_session_maker_null_pool) as db:
         bookings = await db.bookings.get_bookings_with_today_checkin()
@@ -56,4 +88,16 @@ async def get_bookings_with_today_checkin_helper():
 
 @celery_instance.task(name="booking_today_checkin")
 def send_emails_to_users_with_today_checkin():
+    """
+    Celery-задача для отправки уведомлений пользователям с заездом сегодня.
+
+    Поскольку Celery работает в синхронном режиме, используется `asyncio.run()`
+    для запуска асинхронного кода.
+
+    Логика:
+    - Запускает `get_bookings_with_today_checkin_helper()`.
+    - В будущем — можно добавить отправку email/SMS.
+
+    Запускается по расписанию (через Celery Beat).
+    """
     asyncio.run(get_bookings_with_today_checkin_helper())

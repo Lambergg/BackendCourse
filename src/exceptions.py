@@ -4,6 +4,15 @@ from fastapi import HTTPException
 
 
 class NabronirovalException(Exception):
+    """
+    Базовый класс для всех кастомных исключений приложения.
+
+    Наследуется от стандартного `Exception`.
+    Содержит общее поведение и атрибут `detail` по умолчанию.
+
+    Атрибуты:
+    - detail (str): Сообщение об ошибке, используемое по умолчанию.
+    """
     detail = "Неожиданая ошибка"
 
     def __init__(self, *args, **kwargs):
@@ -30,12 +39,36 @@ class AllRoomsAreBookedException(NabronirovalException):
     detail = "Не осталось свободных комнат"
 
 
+# === Валидационные функции ===
 def check_date_to_after_date_from(date_from: date, date_to: date) -> None:
+    """
+    Проверяет, что дата выезда позже даты заезда.
+
+    Параметры:
+    - date_from (date): Дата заезда.
+    - date_to (date): Дата выезда.
+
+    Исключения:
+    - HTTPException(422): если date_to <= date_from.
+
+    Используется в сервисах для валидации входных данных.
+    """
     if date_to <= date_from:
         raise HTTPException(status_code=422, detail="Дата заезда не может быть позже даты выезда")
 
 
+# === HTTP-исключения (для ответа клиенту) ===
 class NabronirovalHTTPException(HTTPException):
+    """
+    Базовый класс для всех HTTP-ошибок приложения.
+
+    Наследуется от `HTTPException` FastAPI.
+    Позволяет определить статус-код и детали ошибки.
+
+    Атрибуты:
+    - status_code (int): Код HTTP-ответа.
+    - detail (str): Текст ошибки.
+    """
     status_code = 500
     detail = None
 

@@ -12,11 +12,38 @@ from src.repositories.utils import rooms_ids_for_booking
 
 
 class RoomsRepository(BaseRepository):
+    """
+    Репозиторий для работы с номерами отелей.
+
+    Предоставляет методы:
+    - Получение номеров с фильтрацией по доступности в указанный период.
+    - Получение одного номера с удобствами (lazy loading через `selectinload`).
+
+    Атрибуты:
+    - model: ORM-модель `RoomsOrm`.
+    - mapper: Маппер `RoomDataMapper` (по умолчанию).
+    """
     model: RoomsOrm = RoomsOrm
     mapper = RoomDataMapper
 
     async def get_filtered_by_time(self, hotel_id: int, date_from: date, date_to: date):
         """
+        Возвращает список доступных номеров в указанном отеле и периоде.
+
+        Использует CTE-запрос (через `rooms_ids_for_booking`) для определения,
+        какие номера **не полностью забронированы** в заданный интервал.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - date_from (date): Дата заезда.
+        - date_to (date): Дата выезда.
+
+        Логика:
+        1. Выполняет CTE-подзапрос `rooms_ids_for_booking()` → получает ID свободных номеров.
+        2. Формирует основной запрос:
+           - Загружает номера по этим ID.
+           - Использует `selectinload` для предварительной загрузки связанных удобств (`facilities`).
+        3. Преобразует результаты через `RoomDataWithRelsMapper`.
         -- CTE общее табличное выражение
             with rooms_count as (
                 select room_id, count(*) as rooms_reserved from bookings
@@ -31,10 +58,13 @@ class RoomsRepository(BaseRepository):
             select * from rooms_left_result
             where rooms_left > 0
             ;
+        Возвращает:
+        - Список Pydantic-схем `RoomWithRels`, содержащих данные о номере и его удобствах.
         """
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
 
         # print(rooms_ids_to_get.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        # logger.debug("SQL: %s", query.compile(dialect=PostgreSQLDialect(), compile_kwargs={"literal_binds": True}))
 
         query = (
             select(self.model)  # type: ignore
@@ -48,6 +78,23 @@ class RoomsRepository(BaseRepository):
         ]
 
     async def get_one_with_rels(self, **filter_by):
+        """
+        Возвращает один номер с загруженными удобствами.
+
+        Параметры:
+        - **filter_by: Условия фильтрации (например, id=1, hotel_id=5).
+
+        Логика:
+        - Выполняет `SELECT ... JOIN facilities`.
+        - Использует `selectinload` для избежания проблемы N+1.
+        - Если номер не найден — выбрасывает `RoomNotFoundException`.
+
+        Исключения:
+        - RoomNotFoundException: если номер не существует.
+
+        Возвращает:
+        - Pydantic-схему `RoomWithRels`.
+        """
         query = (
             select(self.model).options(selectinload(self.model.facilities)).filter_by(**filter_by)  # type: ignore
         )

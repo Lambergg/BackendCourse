@@ -11,6 +11,34 @@ def rooms_ids_for_booking(
     date_to: date,
     hotel_id: int | None = None,
 ) -> Select:
+    """
+    Генерирует SQL-запрос (CTE) для получения ID номеров, доступных в указанный период.
+
+    Используется в репозиториях `HotelsRepository` и `RoomsRepository` для фильтрации
+    отелей и номеров по доступности.
+
+    Параметры:
+    - date_from (date): Дата заезда.
+    - date_to (date): Дата выезда.
+    - hotel_id (int | None): Опциональный фильтр по отелю.
+
+    Логика:
+    1. CTE `rooms_count`: считает количество забронированных мест по каждому номеру
+    в пересекающийся период.
+    2. CTE `rooms_left_result`: вычисляет, сколько мест осталось в каждом номере
+    (quantity - COALESCE(rooms_reserved, 0)).
+    3. Фильтрует только те номера, где `rooms_left > 0`.
+    4. При наличии `hotel_id` — дополнительно фильтрует по отелю.
+
+    Возвращает:
+    - Объект `Select` — готовый подзапрос для использования в `.in_()` или `.filter()`.
+
+    Пример использования:
+        query = select(HotelsOrm).where(HotelsOrm.id.in_(
+            rooms_ids_for_booking(date_from, date_to, hotel_id=1)
+        ))
+    """
+    # CTE: считаем количество забронированных номеров в период
     rooms_count = (
         select(BookingsOrm.room_id, func.count("*").label("rooms_reserved"))
         .select_from(BookingsOrm)
@@ -22,6 +50,7 @@ def rooms_ids_for_booking(
         .cte(name="rooms_count")
     )
 
+    # CTE: вычисляем количество свободных номеров
     rooms_left_result = (
         select(
             RoomsOrm.id.label("rooms_id"),
@@ -34,12 +63,14 @@ def rooms_ids_for_booking(
         .cte(name="rooms_left_result")
     )
 
+    # Подзапрос: получаем ID номеров из указанного отеля (или всех, если hotel_id=None)
     rooms_ids_for_hotel = select(RoomsOrm.id).select_from(RoomsOrm)
     if hotel_id is not None:
         rooms_ids_for_hotel = rooms_ids_for_hotel.filter_by(hotel_id=hotel_id)
 
     rooms_ids_for_hotel_subq: Subquery = rooms_ids_for_hotel.subquery(name="rooms_ids_from_hotel")
 
+    # Основной запрос: получаем ID номеров, где остались свободные места
     rooms_ids_to_get = (
         select(rooms_left_result.c.rooms_id)
         .select_from(rooms_left_result)
