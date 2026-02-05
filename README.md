@@ -38,4 +38,11 @@ docker run \
 -p 8080:8080 \
 nginx
 
+docker run --name booking_nginx \
+           -v "./nginx.conf:/etc/nginx/nginx.conf" \
+           --network=myNetwork \
+           -d \
+           -p 80:80 \
+           nginx
+
 docker build -t booking_image  . 
