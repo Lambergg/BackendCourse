@@ -30,4 +30,12 @@ docker run --name booking_celery_beat \
     booking_image \
     celery --app=src.tasks.celery_app:celery_instance beat -l INFO -B
 
+docker run \
+--name booking_nginx \
+-v "$((Get-Location).Path)\nginx.conf:/etc/nginx/nginx.conf" \
+--network=myNetwork \
+--rm \
+-p 8000:8080 \
+nginx
+
 docker build -t booking_image  . 
