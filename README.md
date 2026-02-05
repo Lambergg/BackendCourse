@@ -35,7 +35,7 @@ docker run \
 -v "$((Get-Location).Path)\nginx.conf:/etc/nginx/nginx.conf" \
 --network=myNetwork \
 --rm \
--p 8000:8080 \
+-p 8080:8080 \
 nginx
 
 docker build -t booking_image  . 
