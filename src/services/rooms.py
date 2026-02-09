@@ -1,7 +1,8 @@
 from datetime import date
 
 from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException, \
-    RoomNotFoundException
+    RoomNotFoundException, HotelIndexWrongHTTPException, RoomIndexWrongHTTPException, RoomAlreadyExistsHTTPException, \
+    HotelNotFoundHTTPException, RoomNotFoundHTTPException, FacilitiesNotFoundHTTPException
 from src.schemas.facilities import RoomsFacilitiesAdd
 from src.schemas.rooms import RoomAddRequest, Room, RoomAdd, RoomPatchRequest, RoomPatch
 from src.services.base import BaseService
@@ -19,12 +20,27 @@ class RoomService(BaseService):
 
     Наследуется от `BaseService`, имеет доступ к `self.db` (DBManager).
     """
+
+    async def is_room_title_taken(self, hotel_id: int, title: str) -> bool:
+        """
+        Проверяет, занято ли название номера в указанном отеле.
+
+        Параметры:
+        - hotel_id (int): ID отеля.
+        - title (str): Название номера.
+
+        Возвращает:
+        - bool: True, если уже есть номер с таким названием.
+        """
+        room = await self.db.rooms.get_by_title_in_hotel(hotel_id, title)
+        return room is not None
+
     async def get_filtered_by_time(
             self,
             hotel_id: int,
             date_from: date,
             date_to: date,
-    ):
+    ) -> list[Room]:
         """
         Возвращает список доступных номеров в указанном отеле и периоде.
 
@@ -40,6 +56,14 @@ class RoomService(BaseService):
         Возвращает:
         - Список Pydantic-схем `RoomWithRels` (с удобствами).
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundException
+
         check_date_to_after_date_from(date_from, date_to)
         return await self.db.rooms.get_filtered_by_time(
             hotel_id=hotel_id, date_from=date_from, date_to=date_to
@@ -63,7 +87,24 @@ class RoomService(BaseService):
         Возвращает:
         - Pydantic-схему `RoomWithRels`.
         """
-        return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        elif room_id <= 0:
+            raise RoomIndexWrongHTTPException
+
+            # Сначала проверяем, существует ли отель
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundHTTPException
+
+        # Теперь ищем номер, который принадлежит именно этому отелю
+        room = await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
+        if not room:
+            raise RoomNotFoundHTTPException
+
+        return room
+        #return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
 
     async def create_room(
             self,
@@ -89,12 +130,28 @@ class RoomService(BaseService):
         Возвращает:
         - Созданный номер как Pydantic-схему.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
         try:
             await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException as ex:
             raise HotelNotFoundException from ex
+
+        # Защита от дублирования по названию
+        if await self.is_room_title_taken(hotel_id, room_data.title):
+            raise RoomAlreadyExistsHTTPException
+
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
         room: Room = await self.db.rooms.add(_room_data)
+
+        # Проверка существования всех удобств
+        if room_data.facilities_ids:
+            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)
+            existing_ids = {f.id for f in existing_facilities}
+            missing_ids = set(room_data.facilities_ids) - existing_ids
+
+            if missing_ids:
+                raise FacilitiesNotFoundHTTPException
 
         rooms_facilities_data = [
             RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids
@@ -126,6 +183,32 @@ class RoomService(BaseService):
         Возвращает:
         - None.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        elif room_id <= 0:
+            raise RoomIndexWrongHTTPException
+
+            # Сначала проверяем, существует ли отель
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundHTTPException
+
+        # Сначала проверяем, существует ли отель
+        try:
+            await self.db.rooms.get_one(id=room_id)
+        except ObjectNotFoundException:
+            raise RoomNotFoundHTTPException
+
+        # Проверка существования всех удобств
+        if room_data.facilities_ids:
+            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)
+            existing_ids = {f.id for f in existing_facilities}
+            missing_ids = set(room_data.facilities_ids) - existing_ids
+
+            if missing_ids:
+                raise FacilitiesNotFoundHTTPException
+
         await HotelService(self.db).get_hotel_with_check(hotel_id)
         await self.get_room_with_check(room_id)
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())

@@ -1,7 +1,7 @@
 import typing
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, BigInteger, String
 
 from src.database import Base
 
@@ -35,9 +35,9 @@ class RoomsOrm(Base):
     """
     __tablename__ = "rooms"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     hotel_id: Mapped[int] = mapped_column(ForeignKey("hotels.id"))
-    title: Mapped[str]
+    title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str | None]
     price: Mapped[int]
     quantity: Mapped[int]

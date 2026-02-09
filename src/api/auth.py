@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, Body
+from fastapi import APIRouter, Response, Request, Body
 
 from src.api.dependencies import UserIdDep, DBDep
+from src.exceptions import UserDeleteTokenHTTPException
 from src.schemas.users import UserRequestAdd
 from src.services.auth import AuthService
 
@@ -117,6 +118,7 @@ async def get_me(
 )
 async def logout_user(
     response: Response,
+    request: Request,
 ):
     """
     Эндпоинт для выхода из системы.
@@ -130,5 +132,8 @@ async def logout_user(
     Возвращает:
     - JSON: `{"Status": "Ok"}`
     """
+    token = request.cookies.get("access_token") or None
+    if not token:
+        raise UserDeleteTokenHTTPException
     response.delete_cookie("access_token")
     return {"Status": "Ok"}

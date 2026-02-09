@@ -3,7 +3,9 @@ import logging
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi_cache import FastAPICache
@@ -44,7 +46,7 @@ async def lifespan(app: FastAPI):
 
 
 # Создаем экземпляр приложения FastAPI
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(docs_url=None, lifespan=lifespan)
 
 # Подключение роутеров
 app.include_router(router_auth)
@@ -54,6 +56,42 @@ app.include_router(router_bookings)
 app.include_router(router_facilities)
 app.include_router(router_images)
 
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,  # type: ignore
+        title=app.title + " - Swagger UI",  # type: ignore
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,  # type: ignore
+        swagger_js_url="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Берём первое сообщение
+    error_msg = exc.errors()[0]["msg"]
+
+    # Локализуем
+    if error_msg == "Field required":
+        localized_msg = "Обязательное поле"
+    elif "shorter than minimum length" in error_msg:
+        localized_msg = "Пароль должен быть не короче восьми символов"
+    elif "value is not a valid email address" in error_msg:
+        localized_msg = "Некорректный email"
+    elif "String should have at least 1 character" in error_msg:
+        localized_msg = "Поля должны содержать хотя бы один символ"
+    elif "JSON decode error" in error_msg:
+        localized_msg = "Неполные данные"
+    elif "Input should be greater than or equal to 0" in error_msg:
+        localized_msg = "Значение должно быть больше или равно нулю"
+    else:
+        localized_msg = error_msg
+
+    raise HTTPException(
+        status_code=422,
+        detail=localized_msg
+    )
 
 # Запуск сервера Uvicorn для запуска API
 if __name__ == "__main__":
@@ -65,7 +103,7 @@ if __name__ == "__main__":
     - port: 8080 — порт сервера.
     - reload: True — автоматическая перезагрузка при изменении кода (для разработки).
     """
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
 
 
 """

@@ -20,6 +20,15 @@ class FacilitiesRepository(BaseRepository):
     model = FacilitiesOrm
     mapper = FacilityDataMapper
 
+    async def get_many_by_ids(self, ids: list[int]) -> list[FacilitiesOrm]:
+        """
+        Возвращает список удобств по списку ID.
+        Только существующие.
+        """
+        query = select(self.model).where(self.model.id.in_(ids))
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
 
 class RoomsFacilitiesRepository(BaseRepository):
     """

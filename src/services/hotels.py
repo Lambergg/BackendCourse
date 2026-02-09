@@ -1,6 +1,8 @@
 from datetime import date
 
-from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException
+from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException, \
+    ObjectAlreadyExistsException, HotelAlreadyExistsHTTPException, HotelIndexWrongHTTPException, \
+    HotelNotFoundHTTPException
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
 
@@ -66,6 +68,8 @@ class HotelService(BaseService):
         Возвращает:
         - Pydantic-схему `Hotel`.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
         return await self.db.hotels.get_one(id=hotel_id)
 
     async def add_hotel(self, data: HotelAdd):
@@ -82,11 +86,14 @@ class HotelService(BaseService):
         Возвращает:
         - Созданный отель как Pydantic-схему.
         """
-        hotel = await self.db.hotels.add(data)
-        await self.db.commit()
-        return hotel
+        try:
+            hotel = await self.db.hotels.add(data)
+            await self.db.commit()
+            return hotel
+        except ObjectAlreadyExistsException:
+            raise HotelAlreadyExistsHTTPException
 
-    async def edit_hotel(self, hotel_id: int, data: HotelAdd):
+    async def edit_hotel(self, hotel_id: int, data: HotelAdd, exclude_unset: bool = False):
         """
         Полностью обновляет данные отеля.
 
@@ -101,10 +108,16 @@ class HotelService(BaseService):
         Возвращает:
         - None.
         """
-        await self.db.hotels.edit(data, id=hotel_id)
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundHTTPException
+        await self.db.hotels.edit(data, id=hotel_id, exclude_unset=exclude_unset)
         await self.db.commit()
 
-    async def edit_hotel_partially(self, hotel_id: int, data: HotelPatch, exclude_unset: bool = False):
+    async def edit_hotel_partially(self, hotel_id: int, data: HotelPatch, exclude_unset: bool = True):
         """
         Частично обновляет данные отеля.
 
@@ -120,6 +133,17 @@ class HotelService(BaseService):
         Возвращает:
         - None.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundHTTPException
+
+        # Проверяем, есть ли установленные поля для обновления
+        if not data.model_dump(exclude_unset=True):
+            return
+
         await self.db.hotels.edit(data, exclude_unset=exclude_unset, id=hotel_id)
         await self.db.commit()
 
@@ -137,6 +161,12 @@ class HotelService(BaseService):
         Возвращает:
         - None.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        try:
+            await self.db.hotels.get_one(id=hotel_id)
+        except ObjectNotFoundException:
+            raise HotelNotFoundHTTPException
         await self.db.hotels.delete(id=hotel_id)
         await self.db.commit()
 
@@ -157,6 +187,8 @@ class HotelService(BaseService):
         Возвращает:
         - Pydantic-схему `Hotel`.
         """
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
         try:
             return await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException:

@@ -40,7 +40,10 @@ async def get_rooms(
     Возвращает:
     - Список номеров с информацией о цене, количестве, удобствах и доступных местах.
     """
-    return await RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
+    try:
+        return await RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
 
 
 @router.get(

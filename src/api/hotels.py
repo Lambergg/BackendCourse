@@ -165,7 +165,7 @@ async def edit_hotel(
     Возвращает:
     - JSON: {"Status": "Ok", "Message": "Отель изменён"}
     """
-    await HotelService(db).edit_hotel(hotel_id, hotel_data)
+    await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=False)
     return {"Status": "Ok", "Message": "Отель изменён"}
 
 

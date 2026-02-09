@@ -81,14 +81,49 @@ class HotelNotFoundHTTPException(NabronirovalHTTPException):
     detail = "Отель не найден"
 
 
+class HotelIndexWrongHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Индекс не может быть меньше или равным нулю"
+
+
+class HotelAlreadyExistsHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Такой отель уже существует"
+
+
 class RoomNotFoundHTTPException(NabronirovalHTTPException):
     status_code = 404
     detail = "Номер не найден"
 
 
+class RoomAlreadyExistsHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Номер с таким названием уже существует в этом отеле"
+
+
+class RoomIndexWrongHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Индекс не может быть меньше или равным нулю"
+
+
+class FacilitiesNotFoundHTTPException(NabronirovalHTTPException):
+    status_code = 404
+    detail = "Удобства не найдены"
+
+
 class UserAllReadyExistsHTTPException(NabronirovalHTTPException):
     status_code = 409
     detail = "Пользователь с таким email уже зарегистрирован"
+
+
+class UserPasswordToShortHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Пароль должен содержать минимум 8 символов"
+
+
+class UserDeleteTokenHTTPException(NabronirovalHTTPException):
+    status_code = 401
+    detail = "Вы уже вышли из аккаунта"
 
 
 class UserNotRegisterHTTPException(NabronirovalHTTPException):

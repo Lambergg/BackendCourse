@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserRequestAdd(BaseModel):
@@ -14,7 +14,7 @@ class UserRequestAdd(BaseModel):
     """
 
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str
 
 
 class UserAdd(BaseModel):

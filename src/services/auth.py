@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 
 from src.config import settings
 from src.exceptions import ObjectAlreadyExistsException, UserNotRegisterHTTPException, \
-    WrongPasswordHTTPException, UserAllReadyExistsHTTPException
+    WrongPasswordHTTPException, UserAllReadyExistsHTTPException, UserPasswordToShortHTTPException
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.base import BaseService
 
@@ -122,6 +122,8 @@ class AuthService(BaseService):
         Возвращает:
         - None.
         """
+        if len(data.password) < 8:
+            raise UserPasswordToShortHTTPException
         hashed_password = self.hash_password(data.password)
         new_user_data = UserAdd(email=data.email, hashed_password=hashed_password)
         try:

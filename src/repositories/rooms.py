@@ -104,3 +104,12 @@ class RoomsRepository(BaseRepository):
         except NoResultFound:
             raise RoomNotFoundException
         return RoomDataWithRelsMapper.map_to_domain_entity(model)
+
+    async def get_by_title_in_hotel(self, hotel_id: int, title: str) -> RoomsOrm:
+        """Возвращает номер по названию и отелю, если найден."""
+        query = select(self.model).where(
+            self.model.hotel_id == hotel_id,
+            self.model.title == title
+        )
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
