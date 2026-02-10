@@ -2,7 +2,7 @@ from src.exceptions import (
     ObjectNotFoundException,
     AllRoomsAreBookedException,
     AllRoomsAreBookedHTTPException,
-    RoomNotFoundHTTPException,
+    RoomNotFoundHTTPException, BookingIndexWrongHTTPException, check_date_to_after_date_from,
 )
 from src.schemas.bookings import BookingAddRequest, BookingAdd
 from src.schemas.hotels import Hotel
@@ -78,6 +78,9 @@ class BookingService(BaseService):
         Возвращает:
         - None (результат сохраняется в БД).
         """
+        if booking_data.room_id <= 0:
+            raise BookingIndexWrongHTTPException
+        check_date_to_after_date_from(date_from=booking_data.date_from, date_to=booking_data.date_to)
         try:
             room: Room = await self.db.rooms.get_one(id=booking_data.room_id)
         except ObjectNotFoundException:

@@ -86,6 +86,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         localized_msg = "Неполные данные"
     elif "Input should be greater than or equal to 0" in error_msg:
         localized_msg = "Значение должно быть больше или равно нулю"
+    elif "Input should be a valid date or datetime, input is too short" in error_msg:
+        localized_msg = "Неккоректная дата"
+    elif "Input should be less than or equal to 9223372036854775807" in error_msg:
+        localized_msg = "Значение превышает диапазон БД"
     else:
         localized_msg = error_msg
 

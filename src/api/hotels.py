@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import Query, APIRouter, Body
+from fastapi import Query, APIRouter, Body, Path
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import PaginationDep, DBDep
@@ -61,8 +61,8 @@ async def get_hotels(
 )
 @cache(expire=10)
 async def get_hotel(
-    hotel_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
 ):
     """
     Возвращает данные одного отеля по его ID.
@@ -136,8 +136,8 @@ async def create_hotel(
     description="<h1>Тут мы обновляем выбранный отель: нужно отправить name и title</h1>",
 )
 async def edit_hotel(
-    hotel_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
     hotel_data: HotelAdd = Body(
         openapi_examples={
             "1": {
@@ -176,8 +176,8 @@ async def edit_hotel(
     description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
 )
 async def partially_edit_hotel(
-    hotel_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
     hotel_data: HotelPatch = Body(
         openapi_examples={
             "1": {
@@ -216,8 +216,8 @@ async def partially_edit_hotel(
     description="<h1>Тут мы удалем выбранный отель: нужно отправить id отеля</h1>",
 )
 async def delete_hotel(
-    hotel_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
 ):
     """
     Удаляет отель по ID.

@@ -144,6 +144,7 @@ class HotelService(BaseService):
         """
         if hotel_id <= 0:
             raise HotelIndexWrongHTTPException
+
         try:
             await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException:

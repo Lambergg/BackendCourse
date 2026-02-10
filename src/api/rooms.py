@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, Query, Path
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep
@@ -23,8 +23,8 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 )
 @cache(expire=10)
 async def get_rooms(
-    hotel_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
     date_from: date = Query(example="2025-12-29"),
     date_to: date = Query(example="2025-12-31"),
 ):
@@ -57,9 +57,9 @@ async def get_rooms(
 )
 @cache(expire=10)
 async def get_room(
-    hotel_id: int,
-    room_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
+    room_id: int = Path(..., le=9223372036854775807),
 ):
     """
     Возвращает данные одного номера по ID отеля и номера.
@@ -89,7 +89,7 @@ async def get_room(
 )
 async def create_room(
     db: DBDep,
-    hotel_id: int,
+    hotel_id: int = Path(..., le=9223372036854775807),
     room_data: RoomAddRequest = Body(
         openapi_examples={
             "1": {
@@ -135,8 +135,8 @@ async def create_room(
 )
 async def edit_room(
     db: DBDep,
-    hotel_id: int,
-    room_id: int,
+    hotel_id: int = Path(..., le=9223372036854775807),
+    room_id: int = Path(..., le=9223372036854775807),
     room_data: RoomAddRequest = Body(
         openapi_examples={
             "1": {
@@ -180,8 +180,8 @@ async def edit_room(
 )
 async def partially_edit_room(
     db: DBDep,
-    hotel_id: int,
-    room_id: int,
+    hotel_id: int = Path(..., le=9223372036854775807),
+    room_id: int = Path(..., le=9223372036854775807),
     room_data: RoomPatchRequest = Body(
         openapi_examples={
             "1": {
@@ -223,9 +223,9 @@ async def partially_edit_room(
     description="<h1>Для удаления номера нужно указать id-отеля и id-номера.</h1>",
 )
 async def delete_room(
-    hotel_id: int,
-    room_id: int,
     db: DBDep,
+    hotel_id: int = Path(..., le=9223372036854775807),
+    room_id: int = Path(..., le=9223372036854775807),
 ):
     """
     Удаляет номер по ID отеля и номера.

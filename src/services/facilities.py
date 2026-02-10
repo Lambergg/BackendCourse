@@ -1,3 +1,4 @@
+from src.exceptions import ObjectAlreadyExistsException, FacilitiesAlreadyExistsHTTPException
 from src.schemas.facilities import FacilitiesAdd
 from src.services.base import BaseService
 from src.tasks.tasks import test_task
@@ -33,8 +34,11 @@ class FacilityService(BaseService):
         Возвращает:
         - Созданное удобство как Pydantic-схему.
         """
-        facilities = await self.db.facilities.add(data)
-        await self.db.commit()
+        try:
+            facilities = await self.db.facilities.add(data)
+            await self.db.commit()
+        except ObjectAlreadyExistsException:
+            raise FacilitiesAlreadyExistsHTTPException
 
         test_task.delay()  # type: ignore
         return facilities

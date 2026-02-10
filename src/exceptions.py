@@ -14,7 +14,7 @@ class NabronirovalException(Exception):
     - detail (str): Сообщение об ошибке, используемое по умолчанию.
     """
 
-    detail = "Неожиданая ошибка"
+    detail = "Неожиданная ошибка"
 
     def __init__(self, *args, **kwargs):
         super().__init__(self.detail, *args, **kwargs)
@@ -89,7 +89,7 @@ class HotelIndexWrongHTTPException(NabronirovalHTTPException):
 
 
 class HotelAlreadyExistsHTTPException(NabronirovalHTTPException):
-    status_code = 422
+    status_code = 409
     detail = "Такой отель уже существует"
 
 
@@ -99,7 +99,7 @@ class RoomNotFoundHTTPException(NabronirovalHTTPException):
 
 
 class RoomAlreadyExistsHTTPException(NabronirovalHTTPException):
-    status_code = 422
+    status_code = 409
     detail = "Номер с таким названием уже существует в этом отеле"
 
 
@@ -111,6 +111,16 @@ class RoomIndexWrongHTTPException(NabronirovalHTTPException):
 class FacilitiesNotFoundHTTPException(NabronirovalHTTPException):
     status_code = 404
     detail = "Удобства не найдены"
+
+
+class FacilitiesAlreadyExistsHTTPException(NabronirovalHTTPException):
+    status_code = 409
+    detail = "Такое удобство уже есть"
+
+
+class BookingIndexWrongHTTPException(NabronirovalHTTPException):
+    status_code = 422
+    detail = "Индекс не может быть меньше или равным нулю"
 
 
 class UserAllReadyExistsHTTPException(NabronirovalHTTPException):
@@ -141,3 +151,8 @@ class WrongPasswordHTTPException(NabronirovalHTTPException):
 class AllRoomsAreBookedHTTPException(NabronirovalHTTPException):
     status_code = 409
     detail = "Не осталось свободных комнат"
+
+
+class WrongTypeImageHTTPException(NabronirovalHTTPException):
+    status_code = 400
+    detail = "Разрешены только изображения: JPEG, PNG, JPG, WebP"
