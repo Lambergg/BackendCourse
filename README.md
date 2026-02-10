@@ -35,7 +35,7 @@ docker run \
 -v "${PWD}/nginx.conf:/etc/nginx/nginx.conf"\
 --network=myNetwork \
 --rm \
--p 8080:8080 \
+-p 80:80 \
 nginx
 
 docker run --name booking_nginx \
