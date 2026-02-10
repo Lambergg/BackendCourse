@@ -32,7 +32,7 @@ docker run --name booking_celery_beat \
 
 docker run \
 --name booking_nginx \
--v "$((Get-Location).Path)\nginx.conf:/etc/nginx/nginx.conf" \
+-v "${PWD}/nginx.conf:/etc/nginx/nginx.conf"\
 --network=myNetwork \
 --rm \
 -p 8080:8080 \
