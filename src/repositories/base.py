@@ -27,6 +27,7 @@ class BaseRepository:
     Параметры:
     - session (AsyncSession): Асинхронная сессия SQLAlchemy.
     """
+
     model: type[Base]
     mapper: type[DataMapper]
     session: AsyncSession
@@ -81,7 +82,7 @@ class BaseRepository:
         """
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        #print(query.compile(compile_kwargs={"literal_binds": True}))
+        # print(query.compile(compile_kwargs={"literal_binds": True}))
         model = result.scalars().one_or_none()
         if model is None:
             return None
@@ -138,16 +139,15 @@ class BaseRepository:
             return self.mapper.map_to_domain_entity(model)
         except IntegrityError as ex:
             logging.error(
-                f'Не удалось добавить данные в БД, входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}'
+                f"Не удалось добавить данные в БД, входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}"
             )
             if isinstance(ex.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistsException from ex
             else:
                 logging.error(
-                    f'Незнакомая ошибка. Входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}'
+                    f"Незнакомая ошибка. Входные данные: {data=}, тип ошибки: {type(ex.orig.__cause__)=}"
                 )
                 raise ex
-
 
     async def add_bulk(self, data: Sequence[BaseModel]):
         """

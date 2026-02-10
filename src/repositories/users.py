@@ -18,6 +18,7 @@ class UsersRepository(BaseRepository):
     - model: ORM-модель `UsersOrm`.
     - mapper: Маппер `UserDataMapper` для преобразования в Pydantic-схему.
     """
+
     model = UsersOrm
     mapper = UserDataMapper
 
@@ -45,6 +46,6 @@ class UsersRepository(BaseRepository):
         query = select(self.model).filter_by(email=email)
         result = await self.session.execute(query)
         # logger.debug("SQL: %s", query.compile(dialect=PostgreSQLDialect(), compile_kwargs={"literal_binds": True}))
-        #print(query.compile(compile_kwargs={"literal_binds": True}))
+        # print(query.compile(compile_kwargs={"literal_binds": True}))
         model = result.scalars().one()
         return UserWithHashedPassword.model_validate(model)

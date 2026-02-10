@@ -22,8 +22,9 @@ class DataMapper:
 
     Используется в репозиториях для унификации преобразования данных.
     """
-    db_model: Type[Base] # ORM-модель (например, UsersOrm)
-    schema: Type[SchemaType] # Pydantic-схема (например, UserSchema)
+
+    db_model: Type[Base]  # ORM-модель (например, UsersOrm)
+    schema: Type[SchemaType]  # Pydantic-схема (например, UserSchema)
 
     @classmethod
     def map_to_domain_entity(cls, data: Base | dict | Row | RowMapping) -> SchemaType:

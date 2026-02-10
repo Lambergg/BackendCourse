@@ -21,6 +21,7 @@ class DBManager:
             hotels = await db.hotels.get_all()
             await db.commit()
     """
+
     def __init__(self, session_factory):
         """
         Инициализирует менеджер с фабрикой сессий.

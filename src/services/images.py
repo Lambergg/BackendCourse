@@ -15,6 +15,7 @@ class ImagesService(BaseService):
 
     Наследуется от `BaseService`, хотя не использует БД напрямую.
     """
+
     def upload_image(self, file: UploadFile):
         """
         Сохраняет загруженное изображение на диск и запускает фоновое изменение размера.

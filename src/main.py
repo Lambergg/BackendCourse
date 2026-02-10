@@ -56,6 +56,7 @@ app.include_router(router_bookings)
 app.include_router(router_facilities)
 app.include_router(router_images)
 
+
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
@@ -88,10 +89,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     else:
         localized_msg = error_msg
 
-    raise HTTPException(
-        status_code=422,
-        detail=localized_msg
-    )
+    raise HTTPException(status_code=422, detail=localized_msg)
+
 
 # Запуск сервера Uvicorn для запуска API
 if __name__ == "__main__":

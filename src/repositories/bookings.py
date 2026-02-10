@@ -23,6 +23,7 @@ class BookingsRepository(BaseRepository):
     - model: ORM-модель `BookingsOrm`.
     - mapper: Маппер `BookingDataMapper` для преобразования в Pydantic-схему.
     """
+
     model = BookingsOrm
     mapper = BookingDataMapper
 

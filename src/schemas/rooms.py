@@ -30,8 +30,8 @@ class RoomWithRels(Room):
 
 
 class RoomPatchRequest(BaseModel):
-    title: str | None = Field(None, min_length=1)
-    description: str | None = Field(None, min_length=1)
+    title: str | None = None
+    description: str | None = None
     price: int | None = Field(None, ge=0)
     quantity: int | None = Field(None, ge=0)
     facilities_ids: list[int] = []

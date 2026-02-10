@@ -22,6 +22,7 @@ class Settings(BaseSettings):
         db_url = settings.DB_URL
         redis_url = settings.REDIS_URL
     """
+
     MODE: Literal["TEST", "LOCAL", "DEV", "PROD"]
 
     DB_HOST: str

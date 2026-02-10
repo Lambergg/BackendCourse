@@ -3,6 +3,7 @@ from datetime import date
 from src.schemas.bookings import BookingAdd, Booking
 from src.utils.db_manager import DBManager
 
+
 #Тесты для CRUD операций с бронями
 async def test_add_booking_crud(db: DBManager):
     #Добавляем бронь
@@ -15,10 +16,10 @@ async def test_add_booking_crud(db: DBManager):
         date_to=date(year=2023, month=12, day=20),
         price=100,
     )
-    new_booking: Booking = await db.bookings.add(booking_data)
+    new_booking: Booking = await db.bookings.add(booking_data)  # type: ignore
 
     #Получаем бронь
-    booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)
+    booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)  # type: ignore
     assert booking
     assert booking.id == new_booking.id
     assert booking.room_id == new_booking.room_id
@@ -33,13 +34,13 @@ async def test_add_booking_crud(db: DBManager):
         date_to=update_date,
         price=100,
     )
-    await db.bookings.edit(update_booking_data, id=new_booking.id)
-    updated_booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)
+    await db.bookings.edit(update_booking_data, id=new_booking.id)  # type: ignore
+    updated_booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)  # type: ignore
     assert updated_booking
     assert updated_booking.id == new_booking.id
     assert updated_booking.date_to == update_date
 
     #Удаляем бронь
-    await db.bookings.delete(id=new_booking.id)
-    booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)
+    await db.bookings.delete(id=new_booking.id)  # type: ignore
+    booking: Booking | None = await db.bookings.get_one_or_none(id=new_booking.id)  # type: ignore
     assert not booking

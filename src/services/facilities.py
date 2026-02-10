@@ -13,6 +13,7 @@ class FacilityService(BaseService):
 
     Наследуется от `BaseService`, имеет доступ к `self.db` (DBManager).
     """
+
     async def create_facility(self, data: FacilitiesAdd):
         """
         Добавляет новое удобство в систему.

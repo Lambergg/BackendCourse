@@ -33,6 +33,7 @@ class RoomsOrm(Base):
             hotel_id=1
         )
     """
+
     __tablename__ = "rooms"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

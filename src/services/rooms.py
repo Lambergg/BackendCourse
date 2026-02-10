@@ -1,8 +1,17 @@
 from datetime import date
 
-from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException, \
-    RoomNotFoundException, HotelIndexWrongHTTPException, RoomIndexWrongHTTPException, RoomAlreadyExistsHTTPException, \
-    HotelNotFoundHTTPException, RoomNotFoundHTTPException, FacilitiesNotFoundHTTPException
+from src.exceptions import (
+    check_date_to_after_date_from,
+    ObjectNotFoundException,
+    HotelNotFoundException,
+    RoomNotFoundException,
+    HotelIndexWrongHTTPException,
+    RoomIndexWrongHTTPException,
+    RoomAlreadyExistsHTTPException,
+    HotelNotFoundHTTPException,
+    RoomNotFoundHTTPException,
+    FacilitiesNotFoundHTTPException,
+)
 from src.schemas.facilities import RoomsFacilitiesAdd
 from src.schemas.rooms import RoomAddRequest, Room, RoomAdd, RoomPatchRequest, RoomPatch
 from src.services.base import BaseService
@@ -32,14 +41,14 @@ class RoomService(BaseService):
         Возвращает:
         - bool: True, если уже есть номер с таким названием.
         """
-        room = await self.db.rooms.get_by_title_in_hotel(hotel_id, title)
+        room = await self.db.rooms.get_by_title_in_hotel(hotel_id, title)  # type: ignore
         return room is not None
 
     async def get_filtered_by_time(
-            self,
-            hotel_id: int,
-            date_from: date,
-            date_to: date,
+        self,
+        hotel_id: int,
+        date_from: date,
+        date_to: date,
     ) -> list[Room]:
         """
         Возвращает список доступных номеров в указанном отеле и периоде.
@@ -60,19 +69,19 @@ class RoomService(BaseService):
             raise HotelIndexWrongHTTPException
 
         try:
-            await self.db.hotels.get_one(id=hotel_id)
+            await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException:
             raise HotelNotFoundException
 
         check_date_to_after_date_from(date_from, date_to)
         return await self.db.rooms.get_filtered_by_time(
             hotel_id=hotel_id, date_from=date_from, date_to=date_to
-        )
+        )  # type: ignore
 
     async def get_room(
-            self,
-            hotel_id: int,
-            room_id: int,
+        self,
+        hotel_id: int,
+        room_id: int,
     ):
         """
         Возвращает один номер с удобствами.
@@ -94,22 +103,22 @@ class RoomService(BaseService):
 
             # Сначала проверяем, существует ли отель
         try:
-            await self.db.hotels.get_one(id=hotel_id)
+            await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException:
             raise HotelNotFoundHTTPException
 
         # Теперь ищем номер, который принадлежит именно этому отелю
-        room = await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
+        room = await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)  # type: ignore
         if not room:
             raise RoomNotFoundHTTPException
 
         return room
-        #return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
+        # return await self.db.rooms.get_one_with_rels(id=room_id, hotel_id=hotel_id)
 
     async def create_room(
-            self,
-            hotel_id: int,
-            room_data: RoomAddRequest,
+        self,
+        hotel_id: int,
+        room_data: RoomAddRequest,
     ):
         """
         Создаёт новый номер в указанном отеле.
@@ -133,20 +142,20 @@ class RoomService(BaseService):
         if hotel_id <= 0:
             raise HotelIndexWrongHTTPException
         try:
-            await self.db.hotels.get_one(id=hotel_id)
+            await self.db.hotels.get_one(id=hotel_id)  # type: ignore
         except ObjectNotFoundException as ex:
             raise HotelNotFoundException from ex
 
         # Защита от дублирования по названию
-        if await self.is_room_title_taken(hotel_id, room_data.title):
+        if await self.is_room_title_taken(hotel_id, room_data.title):  # type: ignore
             raise RoomAlreadyExistsHTTPException
 
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-        room: Room = await self.db.rooms.add(_room_data)
+        room: Room = await self.db.rooms.add(_room_data)  # type: ignore
 
         # Проверка существования всех удобств
         if room_data.facilities_ids:
-            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)
+            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)  # type: ignore
             existing_ids = {f.id for f in existing_facilities}
             missing_ids = set(room_data.facilities_ids) - existing_ids
 
@@ -154,17 +163,18 @@ class RoomService(BaseService):
                 raise FacilitiesNotFoundHTTPException
 
         rooms_facilities_data = [
-            RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids
+            RoomsFacilitiesAdd(room_id=room.id, facility_id=f_id)
+            for f_id in room_data.facilities_ids
         ]
         if rooms_facilities_data:
-            await self.db.rooms_facilities.add_bulk(rooms_facilities_data)
+            await self.db.rooms_facilities.add_bulk(rooms_facilities_data)   # type: ignore
         await self.db.commit()
 
     async def edit_room(
-            self,
-            hotel_id: int,
-            room_id: int,
-            room_data: RoomAddRequest,
+        self,
+        hotel_id: int,
+        room_id: int,
+        room_data: RoomAddRequest,
     ):
         """
         Полностью обновляет номер.
@@ -188,40 +198,29 @@ class RoomService(BaseService):
         elif room_id <= 0:
             raise RoomIndexWrongHTTPException
 
-            # Сначала проверяем, существует ли отель
-        try:
-            await self.db.hotels.get_one(id=hotel_id)
-        except ObjectNotFoundException:
-            raise HotelNotFoundHTTPException
-
-        # Сначала проверяем, существует ли отель
-        try:
-            await self.db.rooms.get_one(id=room_id)
-        except ObjectNotFoundException:
-            raise RoomNotFoundHTTPException
+        # Защита от дублирования по названию
+        if await self.is_room_title_taken(hotel_id, room_data.title):  # type: ignore
+            raise RoomAlreadyExistsHTTPException
 
         # Проверка существования всех удобств
         if room_data.facilities_ids:
-            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)
+            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)  # type: ignore
             existing_ids = {f.id for f in existing_facilities}
             missing_ids = set(room_data.facilities_ids) - existing_ids
 
             if missing_ids:
                 raise FacilitiesNotFoundHTTPException
 
-        await HotelService(self.db).get_hotel_with_check(hotel_id)
-        await self.get_room_with_check(room_id)
+        await HotelService(self.db).get_hotel_with_check(hotel_id)  # type: ignore
+        await self.get_room_with_check(room_id)  # type: ignore
         _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
         await self.db.rooms.edit(_room_data, id=room_id)
-        await self.db.rooms_facilities.set_room_facilities(room_id, facilities_ids=room_data.facilities_ids)
+        await self.db.rooms_facilities.set_room_facilities(
+            room_id, facilities_ids=room_data.facilities_ids
+        )
         await self.db.commit()
 
-    async def partially_edit_room(
-            self,
-            hotel_id: int,
-            room_id: int,
-            room_data: RoomPatchRequest
-    ):
+    async def partially_edit_room(self, hotel_id: int, room_id: int, room_data: RoomPatchRequest):
         """
         Частично обновляет номер.
 
@@ -239,8 +238,26 @@ class RoomService(BaseService):
         Возвращает:
         - None.
         """
-        await HotelService(self.db).get_hotel_with_check(hotel_id)
-        await self.get_room_with_check(room_id)
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        elif room_id <= 0:
+            raise RoomIndexWrongHTTPException
+
+        # Защита от дублирования по названию
+        if await self.is_room_title_taken(hotel_id, room_data.title):  # type: ignore
+            raise RoomAlreadyExistsHTTPException
+
+        # Проверка существования всех удобств
+        if room_data.facilities_ids:
+            existing_facilities = await self.db.facilities.get_many_by_ids(room_data.facilities_ids)  # type: ignore
+            existing_ids = {f.id for f in existing_facilities}
+            missing_ids = set(room_data.facilities_ids) - existing_ids
+
+            if missing_ids:
+                raise FacilitiesNotFoundHTTPException
+
+        await HotelService(self.db).get_hotel_with_check(hotel_id)  # type: ignore
+        await self.get_room_with_check(room_id)  # type: ignore
         _room_data_dict = room_data.model_dump(exclude_unset=True)
         _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
         await self.db.rooms.edit(_room_data, hotel_id=hotel_id, exclude_unset=True, id=room_id)
@@ -251,9 +268,9 @@ class RoomService(BaseService):
         await self.db.commit()
 
     async def delete_room(
-            self,
-            hotel_id: int,
-            room_id: int,
+        self,
+        hotel_id: int,
+        room_id: int,
     ):
         """
         Удаляет номер.
@@ -270,8 +287,13 @@ class RoomService(BaseService):
         Возвращает:
         - None.
         """
-        await HotelService(self.db).get_hotel_with_check(hotel_id)
-        await self.get_room_with_check(room_id)
+        if hotel_id <= 0:
+            raise HotelIndexWrongHTTPException
+        elif room_id <= 0:
+            raise RoomIndexWrongHTTPException
+
+        await HotelService(self.db).get_hotel_with_check(hotel_id)  # type: ignore
+        await self.get_room_with_check(room_id)  # type: ignore
         await self.db.rooms.delete(id=room_id, hotel_id=hotel_id)
         await self.db.commit()
 
@@ -293,6 +315,6 @@ class RoomService(BaseService):
         - Pydantic-схему `Room`.
         """
         try:
-            return await self.db.rooms.get_one(id=room_id)
+            return await self.db.rooms.get_one(id=room_id)  # type: ignore
         except ObjectNotFoundException:
-            raise RoomNotFoundException
+            raise RoomNotFoundHTTPException

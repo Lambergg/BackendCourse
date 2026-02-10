@@ -5,8 +5,13 @@ from passlib.context import CryptContext
 
 
 from src.config import settings
-from src.exceptions import ObjectAlreadyExistsException, UserNotRegisterHTTPException, \
-    WrongPasswordHTTPException, UserAllReadyExistsHTTPException, UserPasswordToShortHTTPException
+from src.exceptions import (
+    ObjectAlreadyExistsException,
+    UserNotRegisterHTTPException,
+    WrongPasswordHTTPException,
+    UserAllReadyExistsHTTPException,
+    UserPasswordToShortHTTPException,
+)
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.base import BaseService
 
@@ -22,6 +27,7 @@ class AuthService(BaseService):
 
     Наследуется от `BaseService`, имеет доступ к `self.db` (сессия БД).
     """
+
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     """
     Контекст для хеширования паролей с использованием bcrypt.
@@ -101,8 +107,8 @@ class AuthService(BaseService):
             raise HTTPException(status_code=401, detail="Неверный токен")
 
     async def register_user(
-            self,
-            data: UserRequestAdd,
+        self,
+        data: UserRequestAdd,
     ):
         """
         Регистрирует нового пользователя.
@@ -133,9 +139,9 @@ class AuthService(BaseService):
             raise UserAllReadyExistsHTTPException
 
     async def login_user(
-            self,
-            data: UserRequestAdd,
-            response: Response,
+        self,
+        data: UserRequestAdd,
+        response: Response,
     ):
         """
         Аутентифицирует пользователя и выдаёт JWT-токен.
@@ -168,8 +174,8 @@ class AuthService(BaseService):
         return {"access_token": access_token, "token_type": "bearer"}
 
     async def get_me(
-            self,
-            user_id: int,
+        self,
+        user_id: int,
     ):
         """
         Возвращает данные текущего пользователя.

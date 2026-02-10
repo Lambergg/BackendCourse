@@ -1,5 +1,9 @@
-from src.exceptions import ObjectNotFoundException, AllRoomsAreBookedException, AllRoomsAreBookedHTTPException, \
-    RoomNotFoundHTTPException
+from src.exceptions import (
+    ObjectNotFoundException,
+    AllRoomsAreBookedException,
+    AllRoomsAreBookedHTTPException,
+    RoomNotFoundHTTPException,
+)
 from src.schemas.bookings import BookingAddRequest, BookingAdd
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
@@ -17,6 +21,7 @@ class BookingService(BaseService):
 
     Наследуется от `BaseService`, имеет доступ к `self.db` (DBManager).
     """
+
     async def get_bookings(self):
         """
         Возвращает все бронирования в системе.
@@ -47,9 +52,9 @@ class BookingService(BaseService):
         return await self.db.bookings.get_filtered(user_id=user_id)
 
     async def add_booking(
-            self,
-            user_id: int,
-            booking_data: BookingAddRequest,
+        self,
+        user_id: int,
+        booking_data: BookingAddRequest,
     ):
         """
         Добавляет новое бронирование, если номер доступен.

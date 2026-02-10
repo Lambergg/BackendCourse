@@ -19,6 +19,7 @@ class HotelDataMapper(DataMapper):
     - Преобразования ORM → схема (для ответа API)
     - Схема → ORM (для сохранения в БД)
     """
+
     db_model = HotelsOrm
     schema = Hotel
 
@@ -29,6 +30,7 @@ class RoomDataMapper(DataMapper):
 
     Используется для базовых операций с номерами.
     """
+
     db_model = RoomsOrm
     schema = Room
 
@@ -41,6 +43,7 @@ class RoomDataWithRelsMapper(DataMapper):
     - `RoomWithRels` включает связанные данные (например, удобства).
     - Используется при получении номера с дополнительной информацией.
     """
+
     db_model = RoomsOrm
     schema = RoomWithRels
 
@@ -51,6 +54,7 @@ class UserDataMapper(DataMapper):
 
     Используется в аутентификации и профиле пользователя.
     """
+
     db_model = UsersOrm
     schema = User
 
@@ -61,6 +65,7 @@ class BookingDataMapper(DataMapper):
 
     Используется в сервисах бронирования.
     """
+
     db_model = BookingsOrm
     schema = Booking
 
@@ -71,5 +76,6 @@ class FacilityDataMapper(DataMapper):
 
     Используется при управлении удобствами отелей.
     """
+
     db_model = FacilitiesOrm
     schema = Facilities

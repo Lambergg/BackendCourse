@@ -18,6 +18,7 @@ class BaseService:
             async def get_user(self, user_id: int):
                 return await self.db.users.get_one(id=user_id)
     """
+
     db: DBManager | None
 
     def __init__(self, db: DBManager | None = None) -> None:

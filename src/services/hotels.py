@@ -1,8 +1,14 @@
 from datetime import date
 
-from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException, \
-    ObjectAlreadyExistsException, HotelAlreadyExistsHTTPException, HotelIndexWrongHTTPException, \
-    HotelNotFoundHTTPException
+from src.exceptions import (
+    check_date_to_after_date_from,
+    ObjectNotFoundException,
+    HotelNotFoundException,
+    ObjectAlreadyExistsException,
+    HotelAlreadyExistsHTTPException,
+    HotelIndexWrongHTTPException,
+    HotelNotFoundHTTPException,
+)
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
 
@@ -18,13 +24,14 @@ class HotelService(BaseService):
 
     Наследуется от `BaseService`, имеет доступ к `self.db` (DBManager).
     """
+
     async def get_filtered_by_time(
-            self,
-            pagination,
-            title: str | None,
-            location: str | None,
-            date_from: date,
-            date_to: date,
+        self,
+        pagination,
+        title: str | None,
+        location: str | None,
+        date_from: date,
+        date_to: date,
     ):
         """
         Возвращает отели с доступными номерами в указанный период.
@@ -117,7 +124,9 @@ class HotelService(BaseService):
         await self.db.hotels.edit(data, id=hotel_id, exclude_unset=exclude_unset)
         await self.db.commit()
 
-    async def edit_hotel_partially(self, hotel_id: int, data: HotelPatch, exclude_unset: bool = True):
+    async def edit_hotel_partially(
+        self, hotel_id: int, data: HotelPatch, exclude_unset: bool = True
+    ):
         """
         Частично обновляет данные отеля.
 
@@ -192,4 +201,4 @@ class HotelService(BaseService):
         try:
             return await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException:
-            raise HotelNotFoundException
+            raise HotelNotFoundHTTPException

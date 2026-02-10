@@ -23,6 +23,7 @@ class RoomsRepository(BaseRepository):
     - model: ORM-модель `RoomsOrm`.
     - mapper: Маппер `RoomDataMapper` (по умолчанию).
     """
+
     model: RoomsOrm = RoomsOrm
     mapper = RoomDataMapper
 
@@ -107,9 +108,6 @@ class RoomsRepository(BaseRepository):
 
     async def get_by_title_in_hotel(self, hotel_id: int, title: str) -> RoomsOrm:
         """Возвращает номер по названию и отелю, если найден."""
-        query = select(self.model).where(
-            self.model.hotel_id == hotel_id,
-            self.model.title == title
-        )
+        query = select(self.model).where(self.model.hotel_id == hotel_id, self.model.title == title)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()

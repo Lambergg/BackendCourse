@@ -4,8 +4,12 @@ from fastapi import APIRouter, Body, Query
 from fastapi_cache.decorator import cache
 
 from src.api.dependencies import DBDep
-from src.exceptions import HotelNotFoundHTTPException, \
-    RoomNotFoundHTTPException, RoomNotFoundException, HotelNotFoundException
+from src.exceptions import (
+    HotelNotFoundHTTPException,
+    RoomNotFoundHTTPException,
+    RoomNotFoundException,
+    HotelNotFoundException,
+)
 from src.schemas.rooms import RoomAddRequest, RoomPatchRequest
 from src.services.rooms import RoomService
 
@@ -95,7 +99,7 @@ async def create_room(
                     "description": "Очень хороший номер",
                     "price": 1000,
                     "quantity": 6,
-                    "facilities_ids": [1, 2, 3, 7]
+                    "facilities_ids": [1, 2, 3, 7],
                 },
             },
         }
@@ -142,7 +146,7 @@ async def edit_room(
                     "description": "Очень хороший номер 2",
                     "price": 2000,
                     "quantity": 8,
-                    "facilities_ids": [1, 2, 3, 4, 5, 6, 7]
+                    "facilities_ids": [1, 2, 3, 4, 5, 6, 7],
                 },
             },
         }
@@ -175,10 +179,10 @@ async def edit_room(
     description="<h1>Для частичного изменения номера нужно указать id-отеля и id-номера, цену, кол-во мест, удобства.</h1>",
 )
 async def partially_edit_room(
-        db: DBDep,
-        hotel_id: int,
-        room_id: int,
-        room_data: RoomPatchRequest = Body(
+    db: DBDep,
+    hotel_id: int,
+    room_id: int,
+    room_data: RoomPatchRequest = Body(
         openapi_examples={
             "1": {
                 "summary": "Новые данные",
@@ -187,11 +191,11 @@ async def partially_edit_room(
                     "description": "Очень хороший номер 3",
                     "price": 10000,
                     "quantity": 2,
-                    "facilities_ids": [1, 2, 3]
+                    "facilities_ids": [1, 2, 3],
                 },
             },
         }
-        )
+    ),
 ):
     """
     Частично обновляет данные номера.

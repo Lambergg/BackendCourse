@@ -17,6 +17,7 @@ class FacilitiesRepository(BaseRepository):
     - model: ORM-модель `FacilitiesOrm`.
     - mapper: Маппер `FacilityDataMapper` для преобразования в Pydantic-схему.
     """
+
     model = FacilitiesOrm
     mapper = FacilityDataMapper
 
@@ -40,6 +41,7 @@ class RoomsFacilitiesRepository(BaseRepository):
     - model: ORM-модель `RoomsFacilitiesOrm`.
     - schema: Pydantic-схема `RoomsFacilities` (используется напрямую без маппера).
     """
+
     model: RoomsFacilitiesOrm = RoomsFacilitiesOrm
     schema = RoomsFacilities
 

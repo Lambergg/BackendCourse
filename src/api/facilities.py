@@ -40,8 +40,8 @@ async def get_facilities(db: DBDep):
     description="<h1>Добавляет удобство</h1>",
 )
 async def create_facilities(
-        db: DBDep,
-        facilities_data: FacilitiesAdd = Body(
+    db: DBDep,
+    facilities_data: FacilitiesAdd = Body(
         openapi_examples={
             "1": {
                 "summary": "Новое удобство",
@@ -50,7 +50,7 @@ async def create_facilities(
                 },
             },
         }
-        )
+    ),
 ):
     """
     Добавляет новое удобство (например: «Сауна», «Wi-Fi», «Бесплатная парковка»).

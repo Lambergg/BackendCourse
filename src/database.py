@@ -24,4 +24,5 @@ class Base(DeclarativeBase):
     Наследуется всеми моделями (HotelsOrm, RoomsOrm и т.д.).
     Позволяет SQLAlchemy управлять метаданными и создавать таблицы.
     """
+
     pass

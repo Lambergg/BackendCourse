@@ -44,7 +44,7 @@ def resize_image(image_path: str):
     Пример выходных файлов:
         original.jpg → original_1000px.jpg, original_500px.jpg, original_200px.jpg
     """
-    logging.debug(f'Вызываеться resize_image с аргументом {image_path=}')
+    logging.debug(f"Вызываеться resize_image с аргументом {image_path=}")
     sizes = [1000, 500, 200]
     output_folder = "src/static/images"
 

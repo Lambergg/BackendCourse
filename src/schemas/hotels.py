@@ -11,5 +11,5 @@ class Hotel(HotelAdd):
 
 
 class HotelPatch(BaseModel):
-    title: str = Field(None, min_length=1)
-    location: str = Field(None, min_length=1)
+    title: str | None = Field(None, min_length=1)
+    location: str | None = Field(None, min_length=1)

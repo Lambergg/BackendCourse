@@ -13,6 +13,7 @@ class NabronirovalException(Exception):
     Атрибуты:
     - detail (str): Сообщение об ошибке, используемое по умолчанию.
     """
+
     detail = "Неожиданая ошибка"
 
     def __init__(self, *args, **kwargs):
@@ -69,6 +70,7 @@ class NabronirovalHTTPException(HTTPException):
     - status_code (int): Код HTTP-ответа.
     - detail (str): Текст ошибки.
     """
+
     status_code = 500
     detail = None
 

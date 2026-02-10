@@ -24,6 +24,7 @@ class HotelsRepository(BaseRepository):
     - model: ORM-модель `HotelsOrm`.
     - mapper: Маппер `HotelDataMapper` для преобразования в Pydantic-схему.
     """
+
     model = HotelsOrm
     mapper = HotelDataMapper
 
