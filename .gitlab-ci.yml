@@ -1,5 +1,7 @@
 stages:          # List of stages for jobs, and their order of execution
   - build
+  - migrations
+  - test
   - deploy
 
 build-job:       # This job runs in the build stage, which runs first.
@@ -9,6 +11,16 @@ build-job:       # This job runs in the build stage, which runs first.
     - cp ${TEST_ENV} .env-test
   script:
     - docker build -t booking-api-image .
+
+Migrations:
+  stage: migrations
+  script:
+    - docker run --rm --network myNetwork booking-api-image alembic upgrade head
+
+Tests:
+  stage: test
+  script:
+    - docker run --rm --network myNetwork booking-api-image pytest -s -v
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
