@@ -3,7 +3,6 @@ from datetime import date
 from src.exceptions import (
     check_date_to_after_date_from,
     ObjectNotFoundException,
-    HotelNotFoundException,
     ObjectAlreadyExistsException,
     HotelAlreadyExistsHTTPException,
     HotelIndexWrongHTTPException,

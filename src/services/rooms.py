@@ -4,7 +4,6 @@ from src.exceptions import (
     check_date_to_after_date_from,
     ObjectNotFoundException,
     HotelNotFoundException,
-    RoomNotFoundException,
     HotelIndexWrongHTTPException,
     RoomIndexWrongHTTPException,
     RoomAlreadyExistsHTTPException,
