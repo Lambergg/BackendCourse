@@ -69,7 +69,7 @@ async def custom_swagger_ui_html():
     )
 
 
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:63342/"])
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:63342"])
 
 
 @app.exception_handler(RequestValidationError)
